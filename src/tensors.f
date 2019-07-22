@@ -8,10 +8,55 @@ implicit none
 
 private
 
-public calculate_covariant_metric, calculate_contravariant_metric
+public calculate_covariant_metric, calculate_contravariant_metric, magnitude, &
+       magnitude_minkowski
 
 
 contains
+
+subroutine magnitude_minkowski(vector,mag)
+!Argiuments
+real(kind=dp), intent(in), dimension(4) :: vector
+real(kind=dp), intent(out) :: mag
+
+
+mag = -1.0_dp *vector(1)**2.0_dp + &
+       1.0_dp*vector(2)**2.0_dp + &
+       1.0_dp*vector(3)**2.0_dp + &
+       1.0_dp*vector(4)**2.0_dp 
+
+
+
+ end subroutine magnitude_minkowski
+
+
+
+subroutine magnitude(metric,vector,mag)
+!Arguments
+real(kind=dp), intent(IN), dimension(4,4) :: metric
+real(kind=dp), intent(IN), dimension(4) :: vector
+real(kind=dp), intent(out) :: mag
+
+
+
+mag = metric(1,1)*vector(1)**2.0_dp + metric(2,2)*vector(2)**2.0_dp + metric(3,3)*vector(3)**2.0_dp+metric(4,4)*vector(4)**2.0_dp&
+      +2.0_dp*(metric(1,2)*vector(1)*vector(2) + & 
+               metric(1,3)*vector(1)*vector(3) + &
+               metric(1,4)*vector(1)*vector(4) + &
+               metric(2,3)*vector(2)*vector(3) + &
+               metric(2,4)*vector(2)*vector(4) + &
+               metric(3,4)*vector(3)*vector(4)   &
+               )
+
+
+
+
+
+end subroutine magnitude
+
+
+
+
 
 subroutine calculate_contravariant_metric(r,theta,metric)
 !Arguments
@@ -23,7 +68,7 @@ real(kind=dp), intent(out), dimension(4,4) :: metric
 real(kind=dp) :: sigma, delta
 
 
-sigma = r**2.0_dp + a**2.0_dp*cos(theta)**2
+sigma = r**2.0_dp + a**2.0_dp*cos(theta)**2.0_dp
 delta = r**2.0_dp - 2.0_dp*r + a**2.0_dp
 
 
@@ -64,7 +109,7 @@ real(kind=dp), intent(out), dimension(4,4) :: metric
 real(kind=dp) :: sigma, delta
 
 
-sigma = r**2.0_dp + a**2.0_dp*cos(theta)**2
+sigma = r**2.0_dp + a**2.0_dp*cos(theta)**2.0_dp
 delta = r**2.0_dp - 2.0_dp*r + a**2.0_dp
 
 
