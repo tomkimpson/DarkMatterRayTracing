@@ -11,6 +11,7 @@ real(kind=dp) r,theta, phi
 
 real(kind=dp), dimension(3) :: xi !radiation point w.r.t COM
 real(kind=dp), dimension(3) :: xR !radiation point w.r.t BH
+real(kind=dp), dimension(3) :: ki, ki_cartesian
 real(kind=dp) x, y, z, t, mm
 real(kind=dp) Ry_x, Ry_y, Ry_z
 real(kind=dp) Rz_x, Rz_y, Rz_z
@@ -27,65 +28,62 @@ integer(kind=dp)  :: ii, jj, kk
 real(kind=dp) :: u0,u1,u2,u3, grr, gthth
 real(kind=dp) :: u0_covar,u1_covar,u2_covar,u3_covar
 real(kind=dp), dimension(4,4) :: Bmatrix
+real(kind=dp), dimension(3,3) :: Ry, Rz
+! Beam direction in local frame
+ki(1) = 1
+ki(2) = psi
+ki(3) = chi
 
-!Define emiatter location
-!BL coordinates of PSR COM
+ki_cartesian(1) = sin(psi)*cos(chi)
+ki_cartesian(2) = sin(psi)*sin(chi)
+ki_cartesian(3) = cos(psi)
 
-
-!Caresian coords
-!mm = sqrt(r**2 + a**2)
-!x = mm * sin(theta)*cos(phi)
-!y = mm * sin(theta)*sin(phi)
-!z = mm * cos(theta)
-
-!Location of radiation point w.r.t. COM
-
-!xi(1) = RPSR_M*sin(psi)*cos(chi)
-!xi(2) = RPSR_M*sin(psi)*sin(chi)
-!xi(3) = RPSR_M*cos(psi)
-
-
-!Ry_x = xi(1)*cos(stheta) + xi(3)*sin(stheta)
-!Ry_y = xi(2)
-!Ry_z = xi(1)*(-sin(stheta)) + xi(3)*cos(stheta)
-
-!Rz_x = Ry_x*cos(sphi) - Ry_y*sin(sphi)
-!Rz_y = Ry_x*sin(sphi) + Ry_y*cos(sphi)
-!Rz_z = Ry_z
-
-
-!xR(1) = Rz_x + x
-!xR(2) = Rz_y + y
-!xR(3) = Rz_z + z
-
-
-
-
-!Define emitter location (centre of mass )
+!Define PSR location in global coordinate frame
 r = 50.0_dp
 theta = PI/2.0_dp
 phi = 0.0_dp
 
 
+
+!And transform to Caresian coords
+mm = sqrt(r**2 + a**2)
+xi(1) = mm * sin(theta)*cos(phi)
+xi(2) = mm * sin(theta)*sin(phi)
+xi(3) = mm * cos(theta)
+
+
+!Rotation
+Ry = 0.0_dp
+Rz = 0.0_dp
+
+Ry(1,1) = cos(stheta)
+Ry(1,3) = sin(stheta)
+Ry(2,2) = 1.0_dp
+Ry(3,1) = -sin(stheta)
+Ry(3,3) = cos(stheta)
+
+Rz(1,1) = cos(sphi)
+Rz(1,2) = -sin(sphi)
+Rz(2,1) = sin(sphi)
+Rz(2,2) = cos(sphi)
+Rz(3,3) = 1.0_dp
+
+
+!No translation - is this ok?
+ki_cartesian = MATMUL(Rz , MATMUL(Ry,ki_cartesian) )
+
+
+
+!And switch back to BL coordinates
+ki(1) = sqrt(ki_cartesian(1)**2 + ki_cartesian(2)**2 + ki_cartesian(3)**2)
+ki(2) = acos(ki_cartesian(3) / ki(1))
+ki(3) = atan2(ki_cartesian(2) , ki_cartesian(1))
+
+
+
 !Define metric
 call calculate_contravariant_metric(r,theta,metric_contra)
 call calculate_covariant_metric(r,theta,metric_covar)
-
-
-
-
-
-
-!Check the metrics
-
-!ii = 1
-!print *, metric_contra(1,ii) * metric_covar(ii,1) + &
- !        metric_contra(2,ii) * metric_covar(ii,2) + &
-  !       metric_contra(3,ii) * metric_covar(ii,3) + &
-   !      metric_contra(4,ii) * metric_covar(ii,4) 
-
-! stop
-
 
 
 !Define emitter 4 velocity
@@ -97,36 +95,35 @@ u_covar(1) = cpt
 u_covar(2) = 0.0_dp
 u_covar(3) = 0.0_dp
 u_covar(4) = cpt
-
-
-call magnitude(metric_contra, u_covar, mag1)
-print *, '4-velocity magnitude:',  mag1
 u_contra = MATMUL(metric_contra, u_covar)
-call magnitude(metric_covar, u_contra, mag1)
-print *, '4-velocity magnitude:',  mag1
+
 
 
 !Construct some random vector. 
 !This vector is in the tetrad frame and so is lowered/raised by Minkowski
-k_contra(1) = 1.0_dp
-k_contra(2) = 2.0_dp
-k_contra(3) = 3.0_dp
-k_contra(4) = 4.0_dp
+k_contra(1) = 0.0_dp
+k_contra(2) = ki(1)
+k_contra(3) = ki(2)
+k_contra(4) = ki(3)
 
 
-k_covar(1) = -k_contra(1)
-k_covar(2) = k_contra(2)
-k_covar(3) = k_contra(3)
-k_covar(4) = k_contra(4)
+!k_covar(1) = -k_contra(1)
+!k_covar(2) = k_contra(2)
+!k_covar(3) = k_contra(3)
+!k_covar(4) = k_contra(4)
 
 
-!The size of this vector is
+
+print *, k_contra
 call magnitude_minkowski(k_contra, mag1)
-print *, 'Vector size in comoving frame', mag1
+print *, mag1
+!The size of this vector is
+!call magnitude_minkowski(k_contra, mag1)
+!print *, 'Vector size in comoving frame', mag1
 
 
-call magnitude_minkowski(k_covar, mag1)
-print *, 'Vector size in comoving frame', mag1
+!call magnitude_minkowski(k_covar, mag1)
+!print *, 'Vector size in comoving frame', mag1
 
 
 
@@ -165,8 +162,6 @@ transform(4,4) = -u_covar(1)/N3
 
 
 
-
-
 Bmatrix(1,:) = -u_covar
 
 Bmatrix(2,1) = u_covar(2)*u_covar(1)/N1
@@ -191,55 +186,20 @@ Bmatrix(4,:) = -Bmatrix(4,:) * delta*sin(theta)**2/N3
 
 
 
-!print *, 'Check transform matrix'
-!do ii = 1,4
-!print *, transform(ii,1)*Bmatrix(ii,1) + &
- !       transform(ii,2)*Bmatrix(ii,2) + &
-  !       transform(ii,3)*Bmatrix(ii,3) + &
-   !     transform(ii,4)*Bmatrix(ii,4) 
-
-
-!enddo
-
-
-
-
-
-
-
-
-
-k_contra_global(1) = transform(1,1) * k_contra(1) + &
-                     transform(2,1) * k_contra(2) + &
-                     transform(3,1) * k_contra(3) + &
-                     transform(4,1) * k_contra(4)
-
-
-print *, k_contra_global(1)
-
-
-k_covar_global(1) = Bmatrix(1,1) * k_covar(1) + &
-                    Bmatrix(2,1) * k_covar(2) + &
-                    Bmatrix(3,1) * k_covar(3) + &
-                    Bmatrix(4,1) * k_covar(4) 
-
-print *, k_covar_global(1)*metric_contra(1,1)
-
-
-stop
-
-
-
-
-!call magnitude_minkowski(k_contra_global, mag1)
-
-
-
 
 !Transform to global coordinate frame
 
 k_contra_global = MATMUL(transform, k_contra)
-k_covar_global = MATMUL(Bmatrix, k_covar)
+
+
+
+print *, k_contra_global
+
+call magnitude(metric_covar, k_contra_global,mag1)
+print *, mag1
+
+stop
+!k_covar_global = MATMUL(Bmatrix, k_covar)
 
 
 

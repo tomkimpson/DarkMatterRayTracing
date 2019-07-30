@@ -9,10 +9,21 @@ implicit none
 private
 
 public calculate_covariant_metric, calculate_contravariant_metric, magnitude, &
-       magnitude_minkowski
+       calculate_minkowski_metric, magnitude_minkowski, mag_3space
 
 
 contains
+
+
+subroutine mag_3space(vector,mag)
+!arguments
+real(kind=dp), intent(in), dimension(3) :: vector
+real(kind=dp), intent(out) :: mag
+
+
+mag = sqrt(vector(1)**2 + vector(2)**2 + vector(3)**2)
+
+end subroutine mag_3space
 
 subroutine magnitude_minkowski(vector,mag)
 !Argiuments
@@ -28,7 +39,6 @@ mag = -1.0_dp *vector(1)**2.0_dp + &
 
 
  end subroutine magnitude_minkowski
-
 
 
 subroutine magnitude(metric,vector,mag)
@@ -142,6 +152,24 @@ metric(4,3) = 0.0_dp
 end subroutine calculate_covariant_metric
 
 
+subroutine calculate_minkowski_metric(r,theta,metric)
+!Note this is the covariant form
+!Contravariant form is just metric**-1
+        
+!Arguments
+real(kind=dp), intent(IN) :: r, theta
+real(kind=dp), intent(out), dimension(4,4) :: metric
+
+
+metric = 0.0_dp
+
+metric(1,1) = -1.0_dp
+metric(2,2) = 1.0_dp
+metric(3,3) = r**2
+metric(4,4) = r**2 * sin(theta)**2
+
+
+end subroutine calculate_minkowski_metric
 
 
 

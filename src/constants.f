@@ -12,5 +12,6 @@ real(kind=dp), parameter :: convert_m = light_c**2/(Newton_g*MBH*Msolar) !Multip
 real(kind=dp), parameter :: convert_s = light_c**3/(Newton_g*MBH*Msolar) !Multiply by this to go TO Natural units
 real(kind=dp), parameter :: convert_spin= light_c/(Newton_g*(MBH*Msolar)**2.0_dp) !Multiply by this to go TO Natural units
 real(kind=dp), parameter :: RPSR_M = RPSR * 1.0d3 * convert_m
+real(kind=dp), parameter :: m = sqrt(rCOM**2 + a**2)
 
 end module constants
