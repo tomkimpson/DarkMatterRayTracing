@@ -14,4 +14,10 @@ real(kind=dp), parameter :: convert_spin= light_c/(Newton_g*(MBH*Msolar)**2.0_dp
 real(kind=dp), parameter :: RPSR_M = RPSR * 1.0d3 * convert_m
 real(kind=dp), parameter :: m = sqrt(rCOM**2 + a**2)
 
+
+
+
+!Global constants declared later
+real(kind=dp) :: E, Lz, kappa
+
 end module constants

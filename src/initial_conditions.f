@@ -21,9 +21,18 @@ contains
 
 
 
-subroutine set_initial_conditions(ki,xi,xi_global)
+subroutine set_initial_conditions(ki,xi,xi_global,v)
+
+!Arguments
 real(kind=dp), dimension(3), intent(inout) :: ki
 real(kind=dp), dimension(3), intent(inout) :: xi, xi_global
+real(kind=dp), dimension(6), intent(out) :: v
+!Other
+real(kind=dp) :: r_dot, theta_dot, phi_dot
+real(kind=dp) :: r,theta, phi, t, sigma, delta
+real(kind=dp) :: pr, ptheta
+real(kind=dp) :: E2
+
 
 
 !Rotate vector components and vector location
@@ -36,8 +45,46 @@ call rotate_vector(xi)
 call transform_to_global(ki,xi,xi_global)
 
 
+!Define start point as COM
+r = xi_global(1)
+theta = xi_global(2)
+phi = xi_global(3)
+t = 0.0_dp
 
 
+sigma = r**2 + a**2 * cos(theta)**2
+delta = r**2 -2.0_dp*r +a**2
+
+r_dot = ki(1)
+theta_dot = ki(2)
+phi_dot = ki(3)
+
+
+pr = r_dot * sigma/delta
+ptheta = sigma*theta_dot
+
+
+
+!Compute the Energy and angular momentum (i.e. pt, phi)
+E2 = (sigma-2.0_dp*r)*(r_dot**2/delta + theta_dot**2) + delta*(sin(theta)*phi_dot)**2
+E = sqrt(E2)
+Lz = (sigma*delta*phi_dot - 2.0_dp*a*r*E)*sin(theta)**2 / (sigma-2.0_dp*r)
+
+!Normalise to E = 1
+pr = pr/E
+ptheta = ptheta/E
+Lz = Lz/E
+
+!And define a normalized kappa
+kappa = ptheta**2 + Lz**2/sin(theta)**2 + a**2*sin(theta)**2
+
+
+v(1) = r
+v(2) = theta
+v(3) = phi
+v(4) = t
+v(5) = pr
+v(6) = ptheta
 
 end subroutine set_initial_conditions
 
@@ -112,7 +159,7 @@ pp = atan(xi(2)/xi(1))
 
 
 call mag_3space(ki,mag1)
-print *, 'Ori Magnitude = ', mag1
+!print *, 'Ori Magnitude = ', mag1
 
 
 
@@ -137,7 +184,7 @@ k_contra(2:4) = MATMUL(jacobian, ki)
 
 call mag_3space(k_contra(2:4),mag1)
 
-print *, 'New Magnitude = ', mag1
+!print *, 'New Magnitude = ', mag1
 
 
 
@@ -226,8 +273,8 @@ enddo
 
 
 
-print *, k_contra
-print *, k_contra_global
+!print *, k_contra
+!print *, k_contra_global
 
 
 !Now get magntiude
@@ -235,10 +282,11 @@ call magnitude(metric_covar, k_contra_global,magnitudeGlobal)
 
 
 
-print *, magnitudeGlobal
+!print *, magnitudeGlobal
 
 
 
+ki = k_contra_global(2:4)
 
 
 end subroutine transform_to_global
