@@ -17,13 +17,13 @@ real(kind=dp),dimension(3) :: ki !Comoving beam direction vector. Magnitude 1.
 real(kind=dp), dimension(3) :: xi !local vector location
 real(kind=dp), dimension(3) :: xi_global !global vector location
 real(kind=dp), dimension(6) :: v !Variables (r,theta,phi,t,pr,ptheta)
-
+real(kind=dp), dimension(3) :: c
 real(kind=dp) :: xglobal, yglobal, zglobal, w
 
 real(kind=dp) :: rmag, mag_check1, mag_check2, dk
 
-integer(kind=dp) :: counter, j,i
-real(kind=dp), dimension(int(1e6),6) :: AllData !Big array to save all data
+integer(kind=dp) :: counter, j,i, save_unit
+real(kind=dp),dimension(:,:),allocatable :: AllData !Big array to save all data
 real(kind=dp) :: mm, xC, yC, zC
 real(kind=dp) :: dummy_angle,res
 character(len=200) :: ID
@@ -58,16 +58,15 @@ call get_environment_variable("RayTracingDir", path)
 
 
 
-!!!!!$OMP PARALLEL DO PRIVATE(ki, v, &
-!!!!!!$OMP& counter,AllData,xC,yC,zC    )
+res = 100.0_dp
+allocate(AllData(int(1e6),6))
+!$OMP PARALLEL DO PRIVATE(ki, v, &
+!$OMP& counter,AllData,xC,yC,zC, &
+!$OMP& dummy_angle, ID,i,c,save_unit) 
 
-
-
-
-
-
-res = 20.0_dp
 do j = 0,int(res)
+
+
 dummy_angle = (PI/res) * real(j,kind=dp)
 
 
@@ -76,22 +75,28 @@ ki(2) = cos(dummy_angle) !ydot
 ki(3) = 0.0_dp !zdot
 
 
-call set_initial_conditions(ki,v)
+call set_initial_conditions(ki,v,c)
 
 
+!print *, j, ki, v(5:6)
 counter = 1
 
 
+
+
+!do while (counter .LT. 5)
 do while (v(1) .GT. Rhor .and. v(1) .LT. 40.0_dp)
 
 
-
-call rk(v)
+!print *, j
+call rk(v,c)
 
 
 if (plot .EQ. 1) then
 !Save data at each integration point for plotting - probably not necessary for PSR timing (where we only care about endpoints)
 AllData(counter,:) = v
+
+!print *, j, v(1)
 
 endif
 counter = counter + 1
@@ -101,14 +106,23 @@ enddo
 
 
 
+
+
+
+
+
+
 if (plot .EQ. 1) then
 
 
 write( ID, '(f10.2)' )  dummy_angle
 
-print *, ID
+!print *, j, ID
 
-open(unit = 10, file = trim(adjustl(path))//'RT_'//trim(adjustl(ID))//'.txt', status = 'replace', form='formatted')
+save_unit = 10*(j+1)
+!print *, 'Writing to file:', j
+
+open(unit = save_unit, file = trim(adjustl(path))//'RT_'//trim(adjustl(ID))//'.txt', status = 'replace', form='formatted')
 
 
 
@@ -119,12 +133,12 @@ do i=1,counter-1
     
  !   print *, xC, yC, zC
 
-    write(10,*) xC,yC,zC
+    write(save_unit,*) xC,yC,zC
 
 enddo
 
 
-close(10)
+close(save_unit)
 
 
 
@@ -133,28 +147,18 @@ endif
 
 
 
-
-
-
-
-
 enddo
-!!!!!!$OMP END PARALLEL DO
+!$OMP END PARALLEL DO
 
 
 
-
-
-
-
-
-stop
+!print *, 'Ended'
 print *, 'Ray Tracing completed succesfully'
-call eval_performance(v,dk)
-print *, 'The relative error in kappa was:', dk
-print *, 'The total accumulated relative error in the variables was:'
-print *, delta(1:3) 
-print *, delta(4:6) 
+!call eval_performance(v,c,dk)
+!print *, 'The relative error in kappa was:', dk
+!print *, 'The total accumulated relative error in the variables was:'
+!print *, delta(1:3) 
+!print *, delta(4:6) 
 
 
 

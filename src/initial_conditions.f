@@ -21,19 +21,21 @@ contains
 
 
 
-subroutine set_initial_conditions(ki,v)
+subroutine set_initial_conditions(ki,v,c)
 
 !Arguments
 real(kind=dp), dimension(3), intent(inout) :: ki
 !real(kind=dp), dimension(3), intent(inout) :: xi, xi_global
 real(kind=dp), dimension(6), intent(out) :: v
+real(kind=dp), dimension(3), intent(out) :: c
+
 !Other
 real(kind=dp) :: r_dot, theta_dot, phi_dot
 real(kind=dp) :: r,theta, phi, t, sigma, delta
 real(kind=dp) :: pr, ptheta
 real(kind=dp) :: E2
 real(kind=dp), dimension(4,4) :: metric
-
+real(kind=dp) :: E, kappa, Lz
 !play
 real(kind=dp) :: xdot, ydot, zdot, dot_mag
 !Rotate vector components and vector location
@@ -125,8 +127,10 @@ v(5) = pr
 v(6) = ptheta
 
 
-
-
+!Dont declare these globally as need to be careful when running in parallel
+c(1) = Lz
+c(2) = kappa
+c(3) = 1.0d-6 !initial stepsize
 
 
 end subroutine set_initial_conditions

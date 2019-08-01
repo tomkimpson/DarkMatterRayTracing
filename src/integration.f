@@ -15,20 +15,22 @@ public rk
 contains
 
 
-subroutine rk(v)
+subroutine rk(v,c)
 !Arguments
 real(kind=dp), dimension(6), intent(inout) :: v !Variables (r,theta,phi,t,pr,ptheta)
-
+real(kind=dp), dimension(3),intent(inout) :: c !Constants + stepsize
 !Other
 real(kind=dp), dimension(6) :: dv
 integer(kind=dp) :: i
 real(kind=dp), dimension(6) :: ytemp1,ytemp2,ytemp3,ytemp4,ytemp5
 real(kind=dp), dimension(6) :: yout, yerr,yscal,ratio
-real(kind=dp) :: yi, hdv, errmax
+real(kind=dp) :: yi, hdv, errmax,dh
+
+dh = c(3)
 
 
 !Step 0 --------------------------------------------
-call geodesic(v,dv)
+call geodesic(v,c,dv)
 do i=1,6
 hdv = dh*dv(i)
 yi = v(i)
@@ -53,7 +55,7 @@ enddo
 
 
 !Step 1 --------------------------------------------
-call geodesic(ytemp1,dv)
+call geodesic(ytemp1,c,dv)
 do i = 1,6
 hdv = dh*dv(i)
 ytemp2(i) = ytemp2(i) + B32*hdv
@@ -71,7 +73,7 @@ enddo
 
 !Step 2 --------------------------------------------
 
-call geodesic(ytemp2,dv)
+call geodesic(ytemp2,c,dv)
 do i =1,6
 hdv = dh*dv(i)
 ytemp3(i) = ytemp3(i) + B43*hdv
@@ -82,7 +84,7 @@ yerr(i) = yerr(i) + (c3 - cbar3 ) * hdv
 enddo
 
 !Step 3 --------------------------------------------
-call geodesic(ytemp3,dv)
+call geodesic(ytemp3,c,dv)
 do i =1,6
 hdv = dh*dv(i)
 ytemp4(i) = ytemp4(i) + B54*hdv
@@ -95,7 +97,7 @@ enddo
 
 
 !Step 4 --------------------------------------------
-call geodesic(ytemp4,dv)
+call geodesic(ytemp4,c,dv)
 
 do i =1,6
 hdv = dh*dv(i)
@@ -105,7 +107,7 @@ enddo
 
 
 !Step 5 --------------------------------------------
-call geodesic(ytemp5,dv)
+call geodesic(ytemp5,c,dv)
 do i = 1,6
 hdv = dh*dv(i)
 yout(i) = yout(i) + c6*hdv
@@ -130,19 +132,20 @@ if (errmax .GT. 1) then
 !The error is too big. Reduce the step size and exit without updating the variable vector
 
 
-call adaptive_shrink(errmax)
+call adaptive_shrink(errmax,dh)
 
 
 else
 
 !The error is OK. Grow the stepsize a little and set the variables for the next integration step
-call adaptive_grow(errmax)
+call adaptive_grow(errmax,dh)
 v = yout
 
 delta = delta+ratio !For tracking the global error
 
 endif
 
+c(3) = dh !Update stepsize
 
 
 
@@ -151,12 +154,14 @@ end subroutine rk
 
 
 
-subroutine geodesic(v,dv)
+subroutine geodesic(v,constants,dv)
 !Arguments
 real(kind=dp), dimension(6) :: v,dv
+real(kind=dp), dimension(3),intent(in) :: constants
 !Other
 real(kind=dp) :: r,theta,phi,t,pr,ptheta
-real(kind=dp) ::sigma,delta, SD,csc
+real(kind=dp) :: sigma,delta, SD,csc
+real(kind=dp) :: Lz, kappa
 !Read in coordinate variables
 r= v(1)
 theta= v(2)
@@ -164,6 +169,11 @@ phi= v(3)
 t= v(4)
 pr= v(5)
 ptheta= v(6)
+
+!Get the constants
+Lz = constants(1)
+kappa = constants(2)
+
 !Define some useful quantities
 
 
@@ -189,8 +199,8 @@ dv(6) = sin(theta)*cos(theta)*(Lz**2 * csc**4 -a**2) / sigma
 end subroutine geodesic
 
 
-subroutine adaptive_shrink(errmax)
-real(kind=dp) :: errmax, htemp
+subroutine adaptive_shrink(errmax,dh)
+real(kind=dp) :: errmax, htemp,dh
 
 
 htemp = S*dh*(errmax**PSHRINK)
@@ -199,8 +209,8 @@ dh = sign(max(abs(htemp), 0.10_dp*abs(dh)),dh)
 
 end subroutine adaptive_shrink
 
-subroutine adaptive_grow(errmax)
-real(kind=dp) errmax,ERRCON,hnext
+subroutine adaptive_grow(errmax,dh)
+real(kind=dp) errmax,ERRCON,hnext,dh
 
 ERRCON = (5.0_dp/S)**(1.0_dp/PGROW)
 

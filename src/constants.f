@@ -42,7 +42,7 @@ real(kind = dp) :: PSHRINK = -0.25_dp,PGROW=-0.20_dp, S=1.0_dp
 
 !Global constants declared later
 character(len=300) :: path
-real(kind=dp) :: dh = 1.0d-6
-real(kind=dp) :: E, Lz, kappa
+!real(kind=dp) :: dh = 1.0d-6
+!real(kind=dp) :: E, Lz, kappa
 real(kind=dp), dimension(6) :: delta = 0.0_dp
 end module constants
