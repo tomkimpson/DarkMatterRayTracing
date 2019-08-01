@@ -57,9 +57,9 @@ If making edits to the code, try to keep to the [FORTRAN Style Guide](https://ww
 
 A python wrapper has been provided to compile and run the code, `run.py`. We use a `-O3` optimization. [See the docs](https://gcc.gnu.org/onlinedocs/gcc/Optimize-Options.html) for discussion on the optimization flags
 
-###tools
+### tools
 
-`PlotRays.py' does what is says on the tin. Can be switched between 3d and 2d by changing the opening `d' parameter
+`PlotRays.py` does what is says on the tin. Can be switched between 3d and 2d by changing the opening `d' parameter
 
 
 ## Numerical Method

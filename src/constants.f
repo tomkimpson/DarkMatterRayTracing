@@ -32,7 +32,7 @@ real(kind = dp) :: c6=512.0_dp/1771.0_dp
 real(kind = dp) :: cbar1 = 2825.0_dp/27648.0_dp, cbar3 = 18575.0_dp/48384.0_dp
 real(kind = dp) :: cbar4=13525.0_dp/55296.0_dp, cbar5 = 277.0_dp/14336.0_dp, cbar6 = 1.0_dp/4.0_dp
 
-real(kind = dp) :: escal = 1.0d15
+real(kind = dp) :: escal = 1.0d19
 real(kind = dp) :: PSHRINK = -0.25_dp,PGROW=-0.20_dp, S=1.0_dp
 
 
@@ -44,5 +44,5 @@ real(kind = dp) :: PSHRINK = -0.25_dp,PGROW=-0.20_dp, S=1.0_dp
 character(len=300) :: path
 real(kind=dp) :: dh = 1.0d-6
 real(kind=dp) :: E, Lz, kappa
-
+real(kind=dp), dimension(6) :: delta = 0.0_dp
 end module constants

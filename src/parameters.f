@@ -20,4 +20,6 @@ real(kind=dp), parameter :: rCOM = 10.0_dp !R coordinate of centre of mass
 real(kind=dp), parameter :: thetaCOM = PI/2.0_dp !theta coordinate of centre of mass
 real(kind=dp), parameter :: phiCOM = PI !theta coordinate of centre of mass
 
+integer(kind=dp), parameter :: plot = 1 !turn on/off (1/0) numerical accuracy evaluation
+
 end module parameters

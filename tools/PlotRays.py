@@ -11,7 +11,7 @@ import os
 path = os.environ['RayTracingDir']
 
 
-d = 3
+d = 2
 
 
 #Set up plotting environment
@@ -58,6 +58,9 @@ if (d == 3):
 if (d == 2):
     ax1.plot(x,y)
 
+    limit = max(max(x),max(y),max(z))
+    ax1.set_xlim(-limit,+limit)
+    ax1.set_ylim(-limit,+limit)
 
 
     #Plot BH

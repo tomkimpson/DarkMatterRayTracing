@@ -32,19 +32,25 @@ real(kind=dp) :: r_dot, theta_dot, phi_dot
 real(kind=dp) :: r,theta, phi, t, sigma, delta
 real(kind=dp) :: pr, ptheta
 real(kind=dp) :: E2
-
+real(kind=dp), dimension(4,4) :: metric
 
 !play
-real(kind=dp) :: xdot, ydot, zdot
+real(kind=dp) :: xdot, ydot, zdot, dot_mag
 !Rotate vector components and vector location
 
 
-call rotate_vector(ki)
-call rotate_vector(xi)
+ !!!!!! Temporarily excluded -------
+
+
+!call rotate_vector(ki)
+!call rotate_vector(xi)
 
 
 !Get vector in global frame
-call transform_to_global(ki,xi,xi_global)
+!call transform_to_global(ki,xi,xi_global)
+
+ !!!!!! Temporarily excluded -------
+
 
 
 !Define start point as COM
@@ -66,38 +72,18 @@ phi_dot = ki(3)
 
 
 
-xdot = 1.0_dp/sqrt(2.0_dp)
-ydot = 1.0_dp/sqrt(2.0_dp)
-zdot = 0.0_dp
+xdot = 1.0_dp
+ydot = 1.0_dp
+zdot = 1.0_dp
+dot_mag = sqrt(xdot**2 + ydot**2+zdot**2)
+xdot = xdot/dot_mag
+ydot = ydot/dot_mag
+zdot = zdot/dot_mag
 
 
 r_dot = xdot*sin(theta)*cos(phi) + ydot*sin(theta)*sin(phi) + zdot*cos(theta)
-
 theta_dot = -(-r_dot*cos(theta)/(r*sin(theta)) + zdot/(r*sin(theta)))
-
 phi_dot = (-xdot*sin(phi) + ydot*cos(phi)) / (r*sin(theta))
-
-
-
-!r_dot = cos(phi)
-!theta_dot = 0.0_dp
-!phi_dot = -sin(phi)
-
-
-
-print *, 'BL dots:', r_dot, theta_dot, phi_dot
-
-
-!xdot = r_dot*cos(phi) - r*phi_dot*sin(phi)
-!ydot = r_dot*sin(phi) + r*phi_dot*cos(phi)
-!zdot = -theta_dot
-
-
-print *, 'Cartesian dots', xdot, ydot,zdot
-
-
-
-!print *, r_dot, theta_dot, phi_dot
 
 
 pr = r_dot * sigma/delta
@@ -110,10 +96,20 @@ E2 = (sigma-2.0_dp*r)*(r_dot**2/delta + theta_dot**2) + delta*(sin(theta)*phi_do
 E = sqrt(E2)
 Lz = (sigma*delta*phi_dot - 2.0_dp*a*r*E)*sin(theta)**2 / (sigma-2.0_dp*r)
 
+
+
+
+call calculate_contravariant_metric(r,theta,metric)
+
+
+
+
+
 !Normalise to E = 1
 pr = pr/E
 ptheta = ptheta/E
 Lz = Lz/E
+
 
 !And define a normalized kappa
 kappa = ptheta**2 + Lz**2/sin(theta)**2 + a**2*sin(theta)**2
@@ -126,17 +122,6 @@ v(4) = t
 v(5) = pr
 v(6) = ptheta
 
-
-
-
-
-!print *, r_dot, theta_dot, phi_dot
-!print *, v(1:3)
-!print *, v(4:6)
-
-!print *, E, Lz, kappa
-
-!stop
 
 
 
