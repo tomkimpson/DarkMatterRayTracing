@@ -114,14 +114,6 @@ enddo
 
 
 
-!do i=1,6
-
-!print *, yerr(i), yscal(i), escal*yerr(i)/yscal(i)
-
-!enddo
-
-!stop
-
 
 !Got all the info we need. Calculate the error
 do i = 1,6
@@ -131,10 +123,6 @@ enddo
 
 
 errmax = max(ratio(1),ratio(2),ratio(3),ratio(4),ratio(5),ratio(6))
-!print *, '------------------'
-!print *, ratio(1:3)*escal
-!print *, ratio(4:6)*escal
-!print *, '------------------'
 errmax = errmax*escal
 
 
@@ -147,29 +135,10 @@ call adaptive_shrink(errmax)
 
 else
 
+!The error is OK. Grow the stepsize a little and set the variables for the next integration step
 call adaptive_grow(errmax)
-
-
-!print *, 'dv = ', yout(1:3)-v(1:3)
-
 v = yout
 
-
-
-
-call geodesic(v,dv)
-
-
-
-
-!print *, 'After one step'
-
-!print *, 'dv:', dv(1:3)
-!print *, dv(1)*cos(v(3)) - dv(3)*sin(v(3))
-!print *, dv(1)*sin(v(3)) - dv(3)*cos(v(3))
-!print *, -dv(2)
-!print *, '-------------------'
-!stop
 endif
 
 

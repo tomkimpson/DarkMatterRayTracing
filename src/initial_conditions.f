@@ -66,8 +66,8 @@ phi_dot = ki(3)
 
 
 
-xdot = 1.0_dp
-ydot = 0.0_dp
+xdot = 1.0_dp/sqrt(2.0_dp)
+ydot = 1.0_dp/sqrt(2.0_dp)
 zdot = 0.0_dp
 
 
