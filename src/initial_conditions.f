@@ -21,11 +21,11 @@ contains
 
 
 
-subroutine set_initial_conditions(ki,xi,xi_global,v)
+subroutine set_initial_conditions(ki,v)
 
 !Arguments
 real(kind=dp), dimension(3), intent(inout) :: ki
-real(kind=dp), dimension(3), intent(inout) :: xi, xi_global
+!real(kind=dp), dimension(3), intent(inout) :: xi, xi_global
 real(kind=dp), dimension(6), intent(out) :: v
 !Other
 real(kind=dp) :: r_dot, theta_dot, phi_dot
@@ -54,9 +54,9 @@ real(kind=dp) :: xdot, ydot, zdot, dot_mag
 
 
 !Define start point as COM
-r = xi_global(1)
-theta = xi_global(2)
-phi = xi_global(3)
+r = rCOM
+theta = thetaCOM
+phi = phiCOM
 t = 0.0_dp
 
 
@@ -72,9 +72,11 @@ phi_dot = ki(3)
 
 
 
-xdot = 1.0_dp
-ydot = 1.0_dp
-zdot = 1.0_dp
+xdot = ki(1)
+ydot = ki(2)
+zdot = ki(3)
+
+
 dot_mag = sqrt(xdot**2 + ydot**2+zdot**2)
 xdot = xdot/dot_mag
 ydot = ydot/dot_mag

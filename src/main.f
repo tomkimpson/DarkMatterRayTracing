@@ -22,15 +22,16 @@ real(kind=dp) :: xglobal, yglobal, zglobal, w
 
 real(kind=dp) :: rmag, mag_check1, mag_check2, dk
 
-integer(kind=dp) :: counter, j
-
-real(kind=dp), dimension(int(1e8),6) :: AllData !Big array to save all data
+integer(kind=dp) :: counter, j,i
+real(kind=dp), dimension(int(1e6),6) :: AllData !Big array to save all data
 real(kind=dp) :: mm, xC, yC, zC
-
+real(kind=dp) :: dummy_angle,res
+character(len=200) :: ID
 !Set up save location
 call get_environment_variable("RayTracingDir", path)
 
 
+!print *, real(1e6)*real(6)*real(dp)/1.0d9, ' GB'
 
 
  !!!!!! Temporarily excluded -------
@@ -57,40 +58,44 @@ call get_environment_variable("RayTracingDir", path)
 
 
 
+!!!!!$OMP PARALLEL DO PRIVATE(ki, v, &
+!!!!!!$OMP& counter,AllData,xC,yC,zC    )
 
 
 
 
 
-!For now we take the 'location' of the vector as just being the COM.
-!It is an open question 
 
-xi_global(1) = rCOM
-xi_global(2) = thetaCOM
-xi_global(3) = phiCOM
+res = 20.0_dp
+do j = 0,int(res)
+dummy_angle = (PI/res) * real(j,kind=dp)
 
 
-call set_initial_conditions(ki,xi,xi_global,v)
+ki(1) = sin(dummy_angle) !xdot
+ki(2) = cos(dummy_angle) !ydot
+ki(3) = 0.0_dp !zdot
+
+
+call set_initial_conditions(ki,v)
+
 
 counter = 1
 
 
-
-
-
-
-
-
-
 do while (v(1) .GT. Rhor .and. v(1) .LT. 40.0_dp)
+
+
+
 call rk(v)
 
-if (plot .EQ. 1) then
-AllData(counter,:) = v
-endif
-!Save data at each integration point for plotting - probably not necessary for PSR timing (where we only care about endpoints)
 
+if (plot .EQ. 1) then
+!Save data at each integration point for plotting - probably not necessary for PSR timing (where we only care about endpoints)
+AllData(counter,:) = v
+
+endif
 counter = counter + 1
+
 enddo
 
 
@@ -99,23 +104,51 @@ enddo
 if (plot .EQ. 1) then
 
 
-!Save output for plotting
-    open(unit=20,file=trim(adjustl(path))//'test.txt',status='replace',form='formatted')
+write( ID, '(f10.2)' )  dummy_angle
 
-    do j = 1,counter-1
-    xC = sqrt(AllData(j,1)**2 + a**2) * sin(AllData(j,2))*cos(AllData(j,3))
-    yC = sqrt(AllData(j,1)**2 + a**2) * sin(AllData(j,2))*sin(AllData(j,3))
-    zC = AllData(j,1) * cos(AllData(j,2))
-   
-    write(20, *) xC, yC, zC
-    enddo
-    close(20)
+print *, ID
+
+open(unit = 10, file = trim(adjustl(path))//'RT_'//trim(adjustl(ID))//'.txt', status = 'replace', form='formatted')
+
+
+
+do i=1,counter-1
+    xC = sqrt(AllData(i,1)**2 + a**2) * sin(AllData(i,2))*cos(AllData(i,3))
+    yC = sqrt(AllData(i,1)**2 + a**2) * sin(AllData(i,2))*sin(AllData(i,3))
+    zC = AllData(i,1) * cos(AllData(i,2))
+    
+ !   print *, xC, yC, zC
+
+    write(10,*) xC,yC,zC
+
+enddo
+
+
+close(10)
+
 
 
 endif
 
 
 
+
+
+
+
+
+
+enddo
+!!!!!!$OMP END PARALLEL DO
+
+
+
+
+
+
+
+
+stop
 print *, 'Ray Tracing completed succesfully'
 call eval_performance(v,dk)
 print *, 'The relative error in kappa was:', dk
