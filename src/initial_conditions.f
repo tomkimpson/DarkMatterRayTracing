@@ -34,8 +34,10 @@ real(kind=dp) :: pr, ptheta
 real(kind=dp) :: E2
 
 
-
+!play
+real(kind=dp) :: xdot, ydot, zdot
 !Rotate vector components and vector location
+
 
 call rotate_vector(ki)
 call rotate_vector(xi)
@@ -55,9 +57,47 @@ t = 0.0_dp
 sigma = r**2 + a**2 * cos(theta)**2
 delta = r**2 -2.0_dp*r +a**2
 
+
+
 r_dot = ki(1)
 theta_dot = ki(2)
 phi_dot = ki(3)
+
+
+
+
+xdot = 1.0_dp
+ydot = 0.0_dp
+zdot = 0.0_dp
+
+
+r_dot = xdot*sin(theta)*cos(phi) + ydot*sin(theta)*sin(phi) + zdot*cos(theta)
+
+theta_dot = -(-r_dot*cos(theta)/(r*sin(theta)) + zdot/(r*sin(theta)))
+
+phi_dot = (-xdot*sin(phi) + ydot*cos(phi)) / (r*sin(theta))
+
+
+
+!r_dot = cos(phi)
+!theta_dot = 0.0_dp
+!phi_dot = -sin(phi)
+
+
+
+print *, 'BL dots:', r_dot, theta_dot, phi_dot
+
+
+!xdot = r_dot*cos(phi) - r*phi_dot*sin(phi)
+!ydot = r_dot*sin(phi) + r*phi_dot*cos(phi)
+!zdot = -theta_dot
+
+
+print *, 'Cartesian dots', xdot, ydot,zdot
+
+
+
+!print *, r_dot, theta_dot, phi_dot
 
 
 pr = r_dot * sigma/delta
@@ -85,6 +125,22 @@ v(3) = phi
 v(4) = t
 v(5) = pr
 v(6) = ptheta
+
+
+
+
+
+!print *, r_dot, theta_dot, phi_dot
+!print *, v(1:3)
+!print *, v(4:6)
+
+!print *, E, Lz, kappa
+
+!stop
+
+
+
+
 
 end subroutine set_initial_conditions
 
@@ -180,13 +236,11 @@ k_contra(1) = 0.0_dp
 k_contra(2:4) = MATMUL(jacobian, ki)
 
 
-
+print *, ki
 
 call mag_3space(k_contra(2:4),mag1)
 
-!print *, 'New Magnitude = ', mag1
-
-
+print *, k_contra(2:4)
 
 
 !Define metric
