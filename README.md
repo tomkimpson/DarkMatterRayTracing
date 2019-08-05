@@ -73,7 +73,6 @@ When integrating numerically, an important consideration is the accuracy of the 
 
 ## ToDO()
 
-* Add E/L/Q/H + total error checks which can be turned on/off
 * Sort out energy/frequency etc
 * Sort out setting initial direction. Maybe bin psr + tetrad for now until everything else is working
 

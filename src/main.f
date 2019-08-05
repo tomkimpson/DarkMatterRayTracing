@@ -58,7 +58,7 @@ call get_environment_variable("RayTracingDir", path)
 
 
 
-res = 100.0_dp
+res = 5.0_dp
 allocate(AllData(int(1e6),6))
 !$OMP PARALLEL DO PRIVATE(ki, v, &
 !$OMP& counter,AllData,xC,yC,zC, &
