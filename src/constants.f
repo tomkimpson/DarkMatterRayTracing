@@ -12,7 +12,6 @@ real(kind=dp), parameter :: convert_m = light_c**2/(Newton_g*MBH*Msolar) !Multip
 real(kind=dp), parameter :: convert_s = light_c**3/(Newton_g*MBH*Msolar) !Multiply by this to go TO Natural units
 real(kind=dp), parameter :: convert_spin= light_c/(Newton_g*(MBH*Msolar)**2.0_dp) !Multiply by this to go TO Natural units
 real(kind=dp), parameter :: RPSR_M = RPSR * 1.0d3 * convert_m
-real(kind=dp), parameter :: m = sqrt(rCOM**2 + a**2)
 real(kind=dp), parameter :: Rhor = 1.0_dp+sqrt(1.0_dp-a**2) + 1.0d-2 !Horizon + eps
 real(kind=dp), PARAMETER :: electron_charge = 4.80320425D-10 !CGS
 real(kind=dp), PARAMETER :: electron_mass = 9.10938356D-28 !CGS
@@ -46,4 +45,6 @@ character(len=300) :: path
 !real(kind=dp) :: dh = 1.0d-6
 !real(kind=dp) :: E, Lz, kappa
 real(kind=dp), dimension(6) :: delta = 0.0_dp
+real(kind=dp) :: rCOM, thetaCOM, phiCOM
+
 end module constants

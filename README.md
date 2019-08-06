@@ -4,7 +4,7 @@ This code calculates the trajectory of light (ray - geometrical optics) on a bac
 
 Whilst typical ray tracing typically integrates the ray *backwards* in time, for this code we instead integrate *forwards*.
 
-The code solves a set of ODEs numerically. We use a Hamiltonian formulation as described in [Pu et al. 2016](https://arxiv.org/abs/1601.02063). 
+The code solves a set of ODEs numerically. We use a Hamiltonian formulation as described in [Pu et al. 2016](https://arxiv.org/abs/1601.02063). Going beyond the usual vacuum approach, we also consider the influence of plasma on the ray spacetime trajectory. See [Kimpson et al. 2019](https://ui.adsabs.harvard.edu/abs/2019MNRAS.484.2411K/abstract).
 
 
 ## Getting Started
@@ -67,30 +67,12 @@ We integrate the equations using a Runge-Kutta-Fehlberg algorithm with adaptive 
 
 
 ### Accuracy tests
-When integrating numerically, an important consideration is the accuracy of the method. We can assess this by independelty evaluating the conserved quantities $E,L,Q$ independently.
+When integrating numerically, an important consideration is the accuracy of the method. We can assess this by independently evaluating the Carter Constant, *Q*
 
-
-
-## ToDO()
-
-* Sort out energy/frequency etc
-* Sort out setting initial direction. Maybe bin psr + tetrad for now until everything else is working
-
-
-## Authors
-
-* **Billie Thompson** - *Initial work* - [PurpleBooth](https://github.com/PurpleBooth)
-
-See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project.
 
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
 
-## Acknowledgments
-
-* Hat tip to anyone whose code was used
-* Inspiration
-* etc
 
 

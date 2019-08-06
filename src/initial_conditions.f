@@ -24,7 +24,7 @@ contains
 subroutine set_initial_conditions(ki,v,c)
 
 !Arguments
-real(kind=dp), dimension(3), intent(inout) :: ki
+real(kind=dp), dimension(4), intent(inout) :: ki
 !real(kind=dp), dimension(3), intent(inout) :: xi, xi_global
 real(kind=dp), dimension(6), intent(out) :: v
 real(kind=dp), dimension(4), intent(out) :: c
@@ -97,7 +97,8 @@ omega2 = B2 * (fr+ft)/sigma
 
 
 !Compute the energy normalization
-E = 2.0_dp*PI*1.0d9 !1GHz
+!E = 2.0_dp*PI*1.0d9 !1GHz
+E = ki(4)
 Enorm = (sigma-2.0_dp*r)*(r_dot**2/delta + theta_dot**2) + delta*(sin(theta)*phi_dot)**2
 Eprime2 = (E**2 - (sigma-2.0_dp*r)*omega2/sigma)/Enorm 
 Eprime = sqrt(Eprime2)
@@ -123,7 +124,7 @@ phi_dot = phi_dot*Eprime
 !Check energies are equal
 E2 = (sigma-2.0_dp*r)*(r_dot**2/delta + theta_dot**2 + omega2/sigma) + delta*(sin(theta)*phi_dot)**2
 
-print *, 'Energy check:', E, sqrt(E2)
+!print *, 'Energy check:', E/ sqrt(E2)
 
 
 
