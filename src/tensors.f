@@ -9,7 +9,8 @@ implicit none
 private
 
 public calculate_covariant_metric, calculate_contravariant_metric, magnitude, &
-       calculate_minkowski_metric, magnitude_minkowski, mag_3space
+       calculate_minkowski_metric, magnitude_minkowski, mag_3space, &
+       plasma_fr, plasma_fr_deriv, plasma_ft, plasma_ft_deriv
 
 
 contains
@@ -172,6 +173,33 @@ metric(4,4) = r**2 * sin(theta)**2
 end subroutine calculate_minkowski_metric
 
 
+subroutine plasma_fr(r,fr)
+real(kind=dp), intent(in) :: r
+real(kind=dp), intent(out) :: fr
+fr = r**0.90_dp 
+end subroutine plasma_fr
+
+
+subroutine plasma_fr_deriv(r,fr)
+real(kind=dp), intent(in) :: r
+real(kind=dp), intent(out) :: fr
+fr = 0.90_dp*r**(-0.10_dp)
+end subroutine plasma_fr_deriv
+
+
+
+subroutine plasma_ft(r,ft)
+real(kind=dp), intent(in) :: r
+real(kind=dp), intent(out) :: ft
+ft = 0.0_dp
+end subroutine plasma_ft
+
+
+subroutine plasma_ft_deriv(r,ft)
+real(kind=dp), intent(in) :: r
+real(kind=dp), intent(out) :: ft
+ft = 0.0_dp
+end subroutine plasma_ft_deriv
 
 end module tensors
 

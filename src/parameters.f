@@ -18,7 +18,10 @@ real(kind=dp), parameter :: psi = PI/2.0_dp, chi = 0.0_dp
 
 real(kind=dp), parameter :: rCOM = 10.0_dp !R coordinate of centre of mass
 real(kind=dp), parameter :: thetaCOM = PI/2.0_dp !theta coordinate of centre of mass
-real(kind=dp), parameter :: phiCOM = PI !theta coordinate of centre of mass
+real(kind=dp), parameter :: phiCOM = PI - PI/8.0_dp !theta coordinate of centre of mass
+
+
+real(kind=dp), parameter :: N = 1d8 !plasma density normalisation
 
 integer(kind=dp), parameter :: plot = 1 !turn on/off (1/0) numerical accuracy evaluation
 

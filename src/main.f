@@ -24,7 +24,7 @@ real(kind=dp) :: rmag, mag_check1, mag_check2, dk
 
 integer(kind=dp) :: counter, j,i, save_unit
 real(kind=dp),dimension(:,:),allocatable :: AllData !Big array to save all data
-real(kind=dp) :: mm, xC, yC, zC
+real(kind=dp) :: mm, xC, yC, zC,r_start
 real(kind=dp) :: dummy_angle,res
 character(len=200) :: ID
 !Set up save location
@@ -58,17 +58,17 @@ call get_environment_variable("RayTracingDir", path)
 
 
 
-res = 5.0_dp
+res = 1.0_dp
 allocate(AllData(int(1e6),6))
 !$OMP PARALLEL DO PRIVATE(ki, v, &
 !$OMP& counter,AllData,xC,yC,zC, &
-!$OMP& dummy_angle, ID,i,c,save_unit) 
+!$OMP& dummy_angle, ID,i,c,save_unit, r_start) 
 
-do j = 0,int(res)
+do j = 1,int(res)
 
 
 dummy_angle = (PI/res) * real(j,kind=dp)
-
+dummy_angle = PI/2.0_dp
 
 ki(1) = sin(dummy_angle) !xdot
 ki(2) = cos(dummy_angle) !ydot
@@ -76,20 +76,22 @@ ki(3) = 0.0_dp !zdot
 
 
 call set_initial_conditions(ki,v,c)
-
+r_start = v(1)
 
 !print *, j, ki, v(5:6)
 counter = 1
 
 
 
+!do while (counter .LT. 500)
+do while (v(1) .GT. Rhor .and. v(1) .LT. r_start*10.0_dp)
 
-!do while (counter .LT. 5)
-do while (v(1) .GT. Rhor .and. v(1) .LT. 40.0_dp)
 
 
 !print *, j
 call rk(v,c)
+
+
 
 
 if (plot .EQ. 1) then

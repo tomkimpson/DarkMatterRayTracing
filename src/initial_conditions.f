@@ -44,21 +44,9 @@ real(kind=dp), dimension(4) :: u_covar, u_contra
 real(kind=dp), dimension(4,4) :: metric_contra, metric_covar, transform_matrix
 real(kind=dp), dimension(4) :: p_tetrad, p_coordinate
 integer(kind=dp) :: i
-
-!Rotate vector components and vector location
-
-
- !!!!!! Temporarily excluded -------
-
-
-!call rotate_vector(ki)
-!call rotate_vector(xi)
-
-
-!Get vector in global frame
-!call transform_to_global(ki,xi,xi_global)
-
- !!!!!! Temporarily excluded -------
+real(kind=dp) :: tbar, pbar, mm, Enorm, B2
+real(kind=dp) :: rdot_prime, thetadot_prime, phidot_prime
+real(kind=dp) :: fr, ft, omega2
 
 
 
@@ -69,179 +57,74 @@ phi = phiCOM
 t = 0.0_dp
 
 
-!Define metric
-call calculate_contravariant_metric(r,theta,metric_contra)
-call calculate_covariant_metric(r,theta,metric_covar)
-
-
-!Define 4-velocity. 
-
-cpt = metric_contra(1,1) + 2.0_dp*metric_contra(1,4) + metric_contra(4,4) 
-cpt = sqrt(-1.0_dp/cpt)
-u_covar(1) = cpt
-u_covar(2) = 0.0_dp
-u_covar(3) = 0.0_dp
-u_covar(4) = cpt
-u_contra = MATMUL(metric_contra, u_covar)
-
-
-mag_4_vel =u_covar(1)*u_contra(1) + &
-           u_covar(2)*u_contra(2) + &
-           u_covar(3)*u_contra(3) + &
-           u_covar(4)*u_contra(4) 
-
-
-
-
-print *, 'Magnitude of 4-velocity should be negative unity:', mag_4_vel
-
-
-
-!Define 4 momentum in tetrad frame
-E = 50.0_dp
-p_tetrad = 0.0_dp
-p_tetrad(4) = 5.0_dp
-
-!Switch to coordinate frame
-call inverse_transform(r,theta, u_covar, u_contra, E, p_tetrad, p_coordinate)
-
-print *, p_coordinate
-stop
-
-!Transform to coordinate frame
-!This gives you E, L, ptheta, pr
-
-
-
-!Finish off. Normalise and define kappa
-
-
-E = 45.0_dp
-
-
-
-
-
-
-print *, transform_matrix(:,3)
-
-
-
-i = 1
-
-
-stop
-
-
-
-
-
-
-m = sqrt(r**2 + a**2)
-xp = m*sin(theta)*cos(phi)
-yp = m*sin(theta)*sin(phi)
-zp = r*cos(theta)
-
-
-w = xp**2 + yp**2 + zp**2 -a**2
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-r_dot = ki(1)
-theta_dot = ki(2)
-phi_dot = ki(3)
-
-
-
-
-
-
-
-!ki(1) = 1.0_dp
-!ki(2) = 0.0_dp
-!ki(3) = 0.0_dp
-
-
+!Define ray direction
 xdot = ki(1)
 ydot = ki(2)
 zdot = ki(3)
 
 
-
-
-Tmag = sqrt(25.0_dp * sigma / (sigma-2.0_dp*r))
-Tmag = 1.0_dp
-
-
-dot_mag = sqrt(xdot**2 + ydot**2+zdot**2)
-xdot = Tmag*xdot/dot_mag
-ydot = Tmag*ydot/dot_mag
-zdot = Tmag*zdot/dot_mag
-
-
-!print *, xdot, ydot, zdot,sqrt(xdot**2 + ydot**2 + zdot**2)
-
-call calculate_covariant_metric(r,theta,metric)
-
-!print *, xdot, ydot, zdot
-
-r_dot = xdot*sin(theta)*cos(phi) + ydot*sin(theta)*sin(phi) + zdot*cos(theta)
-theta_dot = -(-r_dot*cos(theta)/(r*sin(theta)) + zdot/(r*sin(theta)))
-phi_dot = (-xdot*sin(phi) + ydot*cos(phi)) / (r*sin(theta))
-
-
-!r_dot = xdot*sin(theta)*cos(phi) + ydot*sin(theta)*sin(phi) + zdot*cos(theta)
-!theta_dot = -(-r_dot*cos(theta)/(sin(theta)) + zdot/(sin(theta)))
-!phi_dot = (-xdot*sin(phi) + ydot*cos(phi)) / (1.0_dp)
+!Define some useful quantities
+sigma = r**2 + a**2 * cos(theta)**2
+delta = r**2 -2.0_dp*r +a**2
+mm = sqrt(r**2 + a**2)
 
 
 
-grr = metric(2,2)
-gtt = metric(3,3)
-gpp = metric(4,4)
 
-!r_dot = r_dot/grr
-!theta_dot = theta_dot/gtt
-!phi_dot = phi_dot / gpp
+r_dot = mm*r*sin(theta)*cos(phi)*xdot/sigma &
+       +mm*r*sin(theta)*sin(phi)*ydot/sigma &
+       +mm**2*cos(theta)*zdot/sigma
 
 
 
+theta_dot = (mm*cos(theta)*cos(phi) * xdot &
+           +mm*cos(theta)*sin(phi) * ydot &
+           -r*sin(theta)* zdot&
+           )/sigma
+
+
+phi_dot = (-sin(phi)*xdot + cos(phi)*ydot)/(mm*sin(theta))
+
+
+
+!Define plasma frequency
+
+B2 =  N*4.0_dp*PI*electron_charge**2 / electron_mass
+call plasma_fr(r,fr)
+call plasma_ft(r,ft)
+omega2 = B2 * (fr+ft)/sigma
+
+
+
+!Compute the energy normalization
+E = 25.0_dp
+E2 = (sigma-2.0_dp*r)*(r_dot**2/delta + theta_dot**2 + omega2/sigma) + delta*(sin(theta)*phi_dot)**2
+Enorm = sqrt(E2)
+
+Eprime = E/Enorm
+
+!Correct for the normalisation
+r_dot = r_dot * Eprime
+theta_dot = theta_dot*Eprime
+phi_dot = phi_dot*Eprime
+
+
+
+!Check energies are equal
+E2 = (sigma-2.0_dp*r)*(r_dot**2/delta + theta_dot**2 + omega2/sigma) + delta*(sin(theta)*phi_dot)**2
+
+print *, 'Energy check:', E, sqrt(E2)
+
+
+!Define everything else
 
 pr = r_dot * sigma/delta
 ptheta = sigma*theta_dot
-
-
-
-!Compute the Energy and angular momentum (i.e. pt, phi)
-E2 = (sigma-2.0_dp*r)*(r_dot**2/delta + theta_dot**2) + delta*(sin(theta)*phi_dot)**2
-E = sqrt(E2)
-
-
-print *, 'E = ', E
-
-!E = 2.0_dp
-
-
 Lz = (sigma*delta*phi_dot - 2.0_dp*a*r*E)*sin(theta)**2 / (sigma-2.0_dp*r)
 
 
-call calculate_contravariant_metric(r,theta,metric)
 
-
+!Finish off. Normalise and define kappa
 
 
 
@@ -249,6 +132,10 @@ call calculate_contravariant_metric(r,theta,metric)
 pr = pr/E
 ptheta = ptheta/E
 Lz = Lz/E
+B2 = B2 / E**2
+
+
+
 
 
 !And define a normalized kappa
@@ -267,6 +154,8 @@ v(6) = ptheta
 c(1) = Lz
 c(2) = kappa
 c(3) = 1.0d-6 !initial stepsize
+
+
 
 
 end subroutine set_initial_conditions
