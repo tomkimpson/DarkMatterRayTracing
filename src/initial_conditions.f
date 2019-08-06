@@ -27,7 +27,7 @@ subroutine set_initial_conditions(ki,v,c)
 real(kind=dp), dimension(3), intent(inout) :: ki
 !real(kind=dp), dimension(3), intent(inout) :: xi, xi_global
 real(kind=dp), dimension(6), intent(out) :: v
-real(kind=dp), dimension(3), intent(out) :: c
+real(kind=dp), dimension(4), intent(out) :: c
 
 !Other
 real(kind=dp) :: r_dot, theta_dot, phi_dot
@@ -44,7 +44,7 @@ real(kind=dp), dimension(4) :: u_covar, u_contra
 real(kind=dp), dimension(4,4) :: metric_contra, metric_covar, transform_matrix
 real(kind=dp), dimension(4) :: p_tetrad, p_coordinate
 integer(kind=dp) :: i
-real(kind=dp) :: tbar, pbar, mm, Enorm, B2
+real(kind=dp) :: tbar, pbar, mm, Enorm, B2,Eprime2
 real(kind=dp) :: rdot_prime, thetadot_prime, phidot_prime
 real(kind=dp) :: fr, ft, omega2
 
@@ -97,11 +97,21 @@ omega2 = B2 * (fr+ft)/sigma
 
 
 !Compute the energy normalization
-E = 25.0_dp
-E2 = (sigma-2.0_dp*r)*(r_dot**2/delta + theta_dot**2 + omega2/sigma) + delta*(sin(theta)*phi_dot)**2
-Enorm = sqrt(E2)
+E = 2.0_dp*PI*1.0d9 !1GHz
+Enorm = (sigma-2.0_dp*r)*(r_dot**2/delta + theta_dot**2) + delta*(sin(theta)*phi_dot)**2
+Eprime2 = (E**2 - (sigma-2.0_dp*r)*omega2/sigma)/Enorm 
+Eprime = sqrt(Eprime2)
 
-Eprime = E/Enorm
+
+
+
+!E2 = (sigma-2.0_dp*r)*(r_dot**2/delta + theta_dot**2 + omega2/sigma) + delta*(sin(theta)*phi_dot)**2
+!Enorm = sqrt(E2)
+
+
+
+
+!Eprime = E/Enorm
 
 !Correct for the normalisation
 r_dot = r_dot * Eprime
@@ -114,6 +124,9 @@ phi_dot = phi_dot*Eprime
 E2 = (sigma-2.0_dp*r)*(r_dot**2/delta + theta_dot**2 + omega2/sigma) + delta*(sin(theta)*phi_dot)**2
 
 print *, 'Energy check:', E, sqrt(E2)
+
+
+
 
 
 !Define everything else
@@ -154,7 +167,7 @@ v(6) = ptheta
 c(1) = Lz
 c(2) = kappa
 c(3) = 1.0d-6 !initial stepsize
-
+c(4) = B2
 
 
 

@@ -17,7 +17,7 @@ real(kind=dp),dimension(3) :: ki !Comoving beam direction vector. Magnitude 1.
 real(kind=dp), dimension(3) :: xi !local vector location
 real(kind=dp), dimension(3) :: xi_global !global vector location
 real(kind=dp), dimension(6) :: v !Variables (r,theta,phi,t,pr,ptheta)
-real(kind=dp), dimension(3) :: c
+real(kind=dp), dimension(4) :: c
 real(kind=dp) :: xglobal, yglobal, zglobal, w
 
 real(kind=dp) :: rmag, mag_check1, mag_check2, dk
