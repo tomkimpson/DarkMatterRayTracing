@@ -23,109 +23,189 @@ real(kind=dp), dimension(4),intent(inout) :: c !Constants + stepsize
 real(kind=dp), dimension(6) :: dv
 integer(kind=dp) :: i
 real(kind=dp), dimension(6) :: ytemp1,ytemp2,ytemp3,ytemp4,ytemp5
-real(kind=dp), dimension(6) :: yout, yerr,yscal,ratio
+real(kind=dp), dimension(6) :: yout !, yerr,yscal,ratio
 real(kind=dp) :: yi, hdv, errmax,dh
+!New
+
+real(kind=dp), dimension(size(v)) :: y1,y2,y3,y4,y5,y6
+real(kind=dp), dimension(size(v)) :: k1,k2,k3,k4,k5,k6
+real(kind=dp), dimension(size(v)) :: dy1, dy2, dy3, dy4, dy5,dy6
+real(kind=dp), dimension(size(v)) :: ynew, yerr
+real(kind=dp), dimension(size(v)) :: deltaErr, yscal, ratio
+
+
+
 
 dh = c(3)
 
 
-!Step 0 --------------------------------------------
-call geodesic(v,c,dv)
-do i=1,6
-hdv = dh*dv(i)
-yi = v(i)
-ytemp1(i) = yi + B21 * hdv
-ytemp2(i) = yi + B31 * hdv
-ytemp3(i) = yi + B41 * hdv
-ytemp4(i) = yi + B51 * hdv
-ytemp5(i) = yi + B61 * hdv
 
 
-yout(i) = yi + c1 * hdv
-yerr(i) = (c1 - cbar1 ) * hdv
-yscal(i) = abs(yi) + abs(hdv) + 1.0d-3
-
-enddo
+! Y1
+y1 = v
+call geodesic(y1,c, dy1)
+k1 = dh * dy1
 
 
 
+!Y2
+y2 = y1 + B21*k1
+call geodesic(y2,c, dy2)
+k2 = dh * dy2
 
 
-
-
-
-!Step 1 --------------------------------------------
-call geodesic(ytemp1,c,dv)
-do i = 1,6
-hdv = dh*dv(i)
-ytemp2(i) = ytemp2(i) + B32*hdv
-ytemp3(i) = ytemp3(i) + B42*hdv
-ytemp4(i) = ytemp4(i) + B52*hdv
-ytemp5(i) = ytemp5(i) + B62*hdv
-!C and cbar = 0
-enddo
+!Y3
+y3 = y1 + B31*k1 + B32*k2
+call geodesic(y3,c, dy3)
+k3 = dh * dy3
 
 
 
 
+!Y4
+y4 = y1 + B41*k1 + B42*k2 + B43*k3
+call geodesic(y4,c, dy4)
+k4 = dh * dy4
 
 
 
-!Step 2 --------------------------------------------
-
-call geodesic(ytemp2,c,dv)
-do i =1,6
-hdv = dh*dv(i)
-ytemp3(i) = ytemp3(i) + B43*hdv
-ytemp4(i) = ytemp4(i) + B53*hdv
-ytemp5(i) = ytemp5(i) + B63*hdv
-yout(i) = yout(i) + c3*hdv
-yerr(i) = yerr(i) + (c3 - cbar3 ) * hdv
-enddo
-
-!Step 3 --------------------------------------------
-call geodesic(ytemp3,c,dv)
-do i =1,6
-hdv = dh*dv(i)
-ytemp4(i) = ytemp4(i) + B54*hdv
-ytemp5(i) = ytemp5(i) + B64*hdv
-
-yout(i) = yout(i) + c4*hdv
-yerr(i) = yerr(i) + (c4 - cbar4 ) * hdv
-
-enddo
+!Y5
+y5 = y1 + B51*k1 + B52*k2 + B53*k3 + B54*k4 
+call geodesic(y5,c, dy5)
+k5 = dh * dy5
 
 
-!Step 4 --------------------------------------------
-call geodesic(ytemp4,c,dv)
 
-do i =1,6
-hdv = dh*dv(i)
-ytemp5(i) = ytemp5(i) + B65*hdv
-yerr(i) = yerr(i) + (-cbar5 ) * hdv
-enddo
+!Y6
+y6 = y1 + B61*k1 + B62*k2 + B63*k3 + B64*k4 + B65*k5
+call geodesic(y6,c, dy6)
+k6 = dh * dy6
 
 
-!Step 5 --------------------------------------------
-call geodesic(ytemp5,c,dv)
-do i = 1,6
-hdv = dh*dv(i)
-yout(i) = yout(i) + c6*hdv
-yerr(i) = yerr(i) + (c6 - cbar6 ) * hdv
-enddo
+!!Step 0 --------------------------------------------
+!call geodesic(v,c,dv)
+!do i=1,6
+!hdv = dh*dv(i)
+!yi = v(i)
+!ytemp1(i) = yi + B21 * hdv
+!ytemp2(i) = yi + B31 * hdv
+!ytemp3(i) = yi + B41 * hdv
+!ytemp4(i) = yi + B51 * hdv
+!ytemp5(i) = yi + B61 * hdv
+!
+!
+!yout(i) = yi + c1 * hdv
+!yerr(i) = (c1 - cbar1 ) * hdv
+!yscal(i) = abs(yi) + abs(hdv) + 1.0d-3
+!
+!enddo
+!
+!
+!
+!
+!
+!
+!
+!
+!!Step 1 --------------------------------------------
+!call geodesic(ytemp1,c,dv)
+!do i = 1,6
+!hdv = dh*dv(i)
+!ytemp2(i) = ytemp2(i) + B32*hdv
+!ytemp3(i) = ytemp3(i) + B42*hdv
+!ytemp4(i) = ytemp4(i) + B52*hdv
+!ytemp5(i) = ytemp5(i) + B62*hdv
+!!C and cbar = 0
+!enddo
+!
+!
+!
+!
+!
+!
+!
+!!Step 2 --------------------------------------------
+!
+!call geodesic(ytemp2,c,dv)
+!do i =1,6
+!hdv = dh*dv(i)
+!ytemp3(i) = ytemp3(i) + B43*hdv
+!ytemp4(i) = ytemp4(i) + B53*hdv
+!ytemp5(i) = ytemp5(i) + B63*hdv
+!yout(i) = yout(i) + c3*hdv
+!yerr(i) = yerr(i) + (c3 - cbar3 ) * hdv
+!enddo
+!
+!!Step 3 --------------------------------------------
+!call geodesic(ytemp3,c,dv)
+!do i =1,6
+!hdv = dh*dv(i)
+!ytemp4(i) = ytemp4(i) + B54*hdv
+!ytemp5(i) = ytemp5(i) + B64*hdv
+!
+!yout(i) = yout(i) + c4*hdv
+!yerr(i) = yerr(i) + (c4 - cbar4 ) * hdv
+!
+!enddo
+!
+!
+!!Step 4 --------------------------------------------
+!call geodesic(ytemp4,c,dv)
+!
+!do i =1,6
+!hdv = dh*dv(i)
+!ytemp5(i) = ytemp5(i) + B65*hdv
+!yerr(i) = yerr(i) + (-cbar5 ) * hdv
+!enddo
+!
+!
+!!Step 5 --------------------------------------------
+!call geodesic(ytemp5,c,dv)
+!do i = 1,6
+!hdv = dh*dv(i)
+!yout(i) = yout(i) + c6*hdv
+!yerr(i) = yerr(i) + (c6 - cbar6 ) * hdv
+!enddo
+!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+!Update
+yout = y1 + c1*k1  + c3*k3 + c4*k4  +c6*k6 
+yerr = y1 + cbar1*k1 + cbar3*k3 + cbar4*k4 + cbar5*k5 + cbar6*k6
+
+
+
+
+deltaErr = abs(yout - yerr)
+yscal = abs(y1) + abs(k1) + 1.0d-3
+ratio = deltaErr/yscal
+errmax = escal * maxval(ratio)
 
 
 
 
 !Got all the info we need. Calculate the error
-do i = 1,6
-ratio(i) = abs( yerr(i) / yscal(i) )
-enddo
+!do i = 1,6
+!ratio(i) = abs( yerr(i) / yscal(i) )
+!enddo
 
 
 
-errmax = max(ratio(1),ratio(2),ratio(3),ratio(4),ratio(5),ratio(6))
-errmax = errmax*escal
+!errmax = max(ratio(1),ratio(2),ratio(3),ratio(4),ratio(5),ratio(6))
+!errmax = errmax*escal
 
 
 if (errmax .GT. 1) then
