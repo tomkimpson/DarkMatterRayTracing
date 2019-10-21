@@ -36,7 +36,7 @@ integer(kind=dp), parameter :: PSR_Location = 1
 
 
 !Plasma paramters
-real(kind=dp), parameter :: N = 3.50d7 !plasma density normalisation
+real(kind=dp), parameter :: N = 0.00_dp !plasma density normalisation
 
 
 !I/O options

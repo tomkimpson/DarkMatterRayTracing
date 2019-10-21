@@ -27,7 +27,7 @@ real(kind=dp) :: mm, xC, yC, zC,r_start
 real(kind=dp) :: dummy_angle,res, E, ww, AA
 character(len=200) :: ID
 !Set up save location
-call get_environment_variable("RayTracingDir", path)
+call get_environment_variable("DarkMatterDir", path)
 
 !Set up initial location
 
