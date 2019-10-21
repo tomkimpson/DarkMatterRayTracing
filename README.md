@@ -1,10 +1,6 @@
-# Light Ray Tracing in Kerr Spacetime
+# Light Ray Tracing in the a Dark Matter Spacetime
 
-This code calculates the trajectory of light (ray - geometrical optics) on a background Kerr spacetime.
-
-Whilst typical ray tracing typically integrates the ray *backwards* in time, for this code we instead integrate *forwards*.
-
-The code solves a set of ODEs numerically. We use a Hamiltonian formulation as described in [Pu et al. 2016](https://arxiv.org/abs/1601.02063). Going beyond the usual vacuum approach, we also consider the influence of plasma on the ray spacetime trajectory. See [Kimpson et al. 2019](https://ui.adsabs.harvard.edu/abs/2019MNRAS.484.2411K/abstract).
+This code calculates the trajectory of light (ray - geometrical optics) on a background Kerr spacetime surrounded by a dark matter halo.
 
 
 ## Getting Started
@@ -24,11 +20,11 @@ After [cloning the repo](https://help.github.com/en/articles/cloning-a-repositor
 This can be done by setting the environment variable as
 
 ```
-echo 'export RayTracingDir="/Users/tomkimpson/Data/RayTracing/"' >> ~/.bash_profile
+echo 'export DarkMatterDir="/Users/tomkimpson/Data/DM/"' >> ~/.bash_profile
 source ~/.bash_profile
 ```
 
-Just change the path `Users/tomkimpson/Data/RayTracing/` to some appropriate local path. 
+Just change the path `Users/tomkimpson/Data/DM/` to some appropriate local path. 
 
 You can check the environemnt variable has been added to `bash_profile` by either `env` or `vim ~/.bashprofile`
 
@@ -64,6 +60,15 @@ A python wrapper has been provided to compile and run the code, `run.py`. We use
 
 ## Numerical Method
 We integrate the equations using a Runge-Kutta-Fehlberg algorithm with adaptive stepsize. See [Press et al.](https://dl.acm.org/citation.cfm?id=141273)
+
+
+
+## Running in parallel 
+The code is compiled using `-fopenmp` to allow for parallel processing. Geodesic ray tracing naturally lends itself very well to parallel computation. See the [OpenMP docs](https://www.openmp.org/wp-content/uploads/openmp-4.5.pdf). To set the number of threads, use
+
+```
+export OMP_NUM_THREADS=1
+```
 
 
 ### Accuracy tests
