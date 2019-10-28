@@ -37,7 +37,7 @@ real(kind=dp), parameter :: SpinPeriod = p0 * convert_s
 !MPD I/O
 integer(kind=dp), parameter :: nrows = 1d4
 character(len=200) :: path, MPDBinaryData, MPDFormatData, RTPath
-
+integer(kind=dp) :: OrbitNrows, OrbitNcols
 
 
 !Ray tracing

@@ -29,24 +29,20 @@ elif  (d == 2):
 
 #Load data
 
-all_data = glob.glob(path+'RT/*.txt')
+RayData = glob.glob(path+'RT/*.txt')
 
-def plotter(file):
 
-    data=np.loadtxt(file)
-    x = data[:,0]
-    y = data[:,1]
-    z = data[:,2]
-
+def plot(x,y,z,PlotType):
 
 
 
 #Plot it
-
-
     if (d == 3):
-        ax1.plot(x,y,z)  
-       
+
+        if PlotType == 'plot':
+            ax1.plot(x,y,z)  
+        else:
+            ax1.scatter(x,y,z, s=20)
 
 
         limit = max(max(abs(x)),max(abs(y)),max(abs(z)))
@@ -56,17 +52,58 @@ def plotter(file):
 
 
     if (d == 2):
-        ax1.plot(x,y)
+        if PlotType == 'plot':
+            ax1.plot(x,y)
+        else:
+            ax1.scatter(x,y,s=20)
+     
 
         limit = max(max(abs(x)),max(abs(y)),max(abs(z)))
         ax1.set_xlim(-limit,+limit)
         ax1.set_ylim(-limit,+limit)
 
 
+def PlotRay(file):
+    
+    data=np.loadtxt(file)
+    x = data[:,0]
+    y = data[:,1]
+    z = data[:,2]
+
+    plot(x,y,z,'plot')
 
 
-for f in all_data:
-    plotter(f)
+
+
+    
+
+
+
+for f in RayData:
+    PlotRay(f)
+
+
+
+
+
+
+#----------------------------
+
+OrbitData = np.loadtxt(path + 'MPDFormatData.txt')
+
+
+r = OrbitData[:,0]
+theta = OrbitData[:,1]
+phi = OrbitData[:,2]
+a = OrbitData[0,3]
+
+mm = np.sqrt(r**2 + a**2)
+x = mm * np.sin(theta)*np.cos(phi)
+y = mm * np.sin(theta)*np.sin(phi)
+z = r  * np.cos(theta)
+
+
+plot(x,y,z,'scatter')
 
 
 

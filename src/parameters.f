@@ -11,7 +11,7 @@ integer, parameter :: dp = selected_real_kind(33,4931)
 real(kind=dp), parameter :: PI = 4.D0*ATAN(1.D0) 
 !BH parameters
 real(kind=dp), parameter :: MBH = 4.310d6 !BH mass in solar  !BH mass
-real(kind=dp), parameter :: a = 0.9980_dp !BH spin parameter
+real(kind=dp), parameter :: a = 0.60_dp !BH spin parameter
 
 
 !PSR parameters
@@ -24,7 +24,7 @@ real(kind=dp), parameter :: chi = PI/2.0_dp !Polar angle between spin and radiat
 
 !Orbital parameters
 real(kind=dp), parameter :: KeplerianPeriod = 0.10_dp !years
-real(kind=dp), parameter :: eccentricity = 0.10_dp
+real(kind=dp), parameter :: eccentricity = 0.80_dp
 real(kind=dp), parameter :: iota = 0.0_dp !Inclination w.r.t equatorial plane in degrees 0.60_dp
 real(kind=dp), parameter :: lambda = 0.0_dp !Turn on/off spin curvature coupling
 real(kind=dp), parameter :: Norbit = 3.0_dp !Number of orbits

@@ -27,14 +27,13 @@ elif  (d == 2):
 
 #Load data
 
-path = os.environ['IliadDir']
+path = os.environ['DarkMatterDir']
 data = np.loadtxt(path + 'MPDFormatData.txt')
 
 r = data[:,0]
 theta = data[:,1]
 phi = data[:,2]
 a = data[0,3]
-
 
 mm = np.sqrt(r**2 + a**2)
 x = mm * np.sin(theta)*np.cos(phi)

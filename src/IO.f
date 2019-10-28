@@ -9,20 +9,57 @@ implicit none
 
 private
 
-public FileOpen, ToTextFile, create_RT_plotfile
+public FileOpen, ToTextFile, create_RT_plotfile, convert_from_binary
 
 contains
 
 
-subroutine ToTextFile(f)
 
-character(len=200) :: f
+
+
+
+subroutine convert_from_binary(f,nrows,ncols)
+!Argument
+character(len=200) :: f !This is the binary data file path
+integer(kind=dp) :: ncols,nrows
+!Other
+real(kind=dp), dimension(:,:), allocatable :: DataArray
+integer(kind=dp) :: stat
+
+
+print *, f
+!Open the .dat file
+open(unit=10, file=f , form='unformatted')
+
+!Allocate the data array
+allocate(DataArray(nrows, ncols))
+
+
+
+print *, shape(DataArray)
+!Read in data
+read(10,iostat=stat) DataArray
+
+print *, DataArray(2,:)
+
+
+
+
+end subroutine convert_from_binary
+
+
+
+
+
+
+subroutine ToTextFile()
+
 real(kind=dp), dimension(13) :: row
 real(kind=dp), dimension(:,:), allocatable :: array
 integer(kind=dp) :: i,stat
 
 
-allocate(array(nrows,entries+1))
+allocate(array(nrows,4))
 
 !Open the .dat file
 open(unit=10, file=MPDBinaryData , form='unformatted',access='stream')
@@ -39,6 +76,13 @@ do while (stat .EQ. 0)
 
     read(10,iostat=stat) array
     
+    print *, array(1,:)
+    stop
+
+
+
+
+
     do i=1,nrows
     
     if (array(i,2) .EQ. 0.0_dp) then
@@ -47,6 +91,8 @@ do while (stat .EQ. 0)
 
     
     write(20,*) array(i,2), array(i,3), array(i,4), a
+    !print *,  array(i,2), array(i,3), array(i,4), a
+    !print *, stat
     
     
     enddo

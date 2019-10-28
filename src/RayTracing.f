@@ -36,44 +36,38 @@ integer(kind=dp) :: FileID
 
 
 
-allocate(MPDData(nrows,entries+1))
-allocate(PlotData(int(1e5),6))
 
-
+allocate(MPDData(OrbitNrows,OrbitNcols))
 
 !Load the MPD Data file
-open(unit=10, file=MPDBinaryData , form='unformatted',access='stream')
-
-!Load the data
-
-stat = 0
-
-    !For each array
-    read(10,iostat=stat) MPDData
-    if (stat .NE. 0) then
-    stop
-    endif
-
-    print *, 'Loaded MPD DATA', stat
+open(unit=10, file=MPDBinaryData , form='unformatted',action='read')
+read(10,iostat=stat) MPDData
+close(10)
 
 
-    !For each row in array
-    do i = 1,nrows
+!Find the intersecting ray
 
-    if (MPDData(i,2) .EQ. 0.0_dp) then
-    !End of data array. Exit condition
-    print *, 'End of orbital data'
-    stop
-    endif
+!For each row in array
+do i = 1,OrbitNrows
 
-
-    !Get the data in terms of vectors
-    !Get position coords
-    xvector(1) = MPDData(i,13) !tau
-    xvector(2:4) = MPDData(i,2:4)
+    !Get the data as a position vector t, r, theta, phi
+    xvector(1:4) = MPDData(i,1:4)
+ 
+!xvector(1) = 5.00000000000000000000000000000000000         
+!xvector(2) = 1484.55810146794412658580140724669970         
+!xvector(3) = 1.57079632679489661923132169163975140        
+!xvector(4) = 9.42477796076937971538793014983850839
 
 
 
+
+xvector(1) =  1.00000000000000000000000000000000000         
+xvector(2) = 394.416820652839295349451495054830836         
+xvector(3)=1.57079632679489661923132169163975140         
+xvector(4)=1.88495559215387594307758602996770164      
+
+
+    print *, 'XVector:', xvector
 
     !Do either forward or backward Ray Tracing
 
@@ -91,18 +85,11 @@ stat = 0
 
 
 
-    stop
-    enddo
-
-
-    stop
+enddo
 
 
 
 
-
-
-close(10)
 
 end subroutine RT
 
@@ -123,7 +110,7 @@ real(kind=dp),dimension(6) :: IO
 real(kind=dp),dimension(4) :: globals
 real(kind=dp),dimension(3) :: OT
 integer(kind=dp) :: plot !Do you want to save ray path?
-
+integer(kind=dp) :: RayClass
 
 !The target points 
 mm = sqrt(xi(2)**2 + a**2)
@@ -131,44 +118,47 @@ xT = mm * sin(xi(3))*cos(xi(4))
 yT = mm * sin(xi(3))*sin(xi(4))
 zT = mm * cos(xi(3))
 
+IO(1) = xT
+IO(2) = yT
+IO(3) = zT
 
-xT = -13.0_dp
-yT = 5.0_dp
-zT = 0.0_dp
-
-
-
-
+RayClass = 1 !Minkowski Initialisation
+RayClass = 3
 !TO DO()
 !Secondary rays
 !Speed optimization
 !Robustness for edge cases e.g. hits BH
 
 !Initial guess at the coordinates of the image plane
-alpha = -10.0_dp*yT !Falls below horizon for alpha=-yT (=-5.0_dp)
-beta = xT*cos(ThetaObs) + zT*sin(ThetaObs)
+!alpha = -10.0_dp*yT !Falls below horizon for alpha=-yT (=-5.0_dp)
 
-!Get the target point and initial alpha beta
-IO(1) = xT
-IO(2) = yT
-IO(3) = zT
-IO(4) = alpha
-IO(5) = beta 
+!Intiailly ray class = minkowski
 
+
+11 call setAB(IO,OT,RayClass)
+
+print *, 'IC:', RayClass, IO(4), IO(5)
 !Fire a ray. How it does i.e. ds is written to IO(6)
 plot = 0
-call shoot(IO,plot)
 
+call shoot(IO,plot)
 print *, 'Initial ds =', IO(6)
+
+if (IO(6) .EQ. -1.0_dp) then
+!Fell into BH. Poor choice of initial ray. Search for more bent rays instead
+RayClass = RayClass + 1
+goto 11
+endif
+
+
+
 
 !Now run some conjugate gradient descent (non-linear) using the AIM subroutine
 OT(1) = 0.010_dp ! Initial stepsize alpha for backtracing
 globals = 0.0_dp
 
 do while (IO(6) .GT. 1.0d-6)
-
 call aim(IO,globals,OT)
-
 enddo
 
 
@@ -179,7 +169,17 @@ print *, 'The mininum has been sucessfully found. Now tracing the ray'
 plot=1
 call shoot(IO,plot)
 
-stop
+
+
+
+
+
+
+
+if (xT .LT. 0.0_dp .and. RayClass .NE. 3) then
+RayClass = 3 
+goto 11
+endif
 
 
 
@@ -291,10 +291,22 @@ dstemp = IO(6)
         IO(4) = alpha0 + etaRT*hA
         IO(5) = beta0 + etaRT*hB
  
+        !Check sign of alpha doesnt change
+        if ( sign(1.0_dp,IO(4)/alpha0) .NE. 1.0_dp) then
+        globals = 0
+        etaRT = etaRT*0.10_dp
+        goto 02
+        endif
+
+
+
+
 
         call shoot(IO,plot)
 
         print *, 'i:', IO(4:6)
+
+
 
        ! if ((IO(6) - dstemp) .LT. etaRT*t) then
         
@@ -311,7 +323,7 @@ globals(2) = gB
 globals(3) = hA
 globals(4) = hB
 
-
+OT(1) = etaRT*1.10_dp !Try small increase in stepsize for next time?
 
 if (etaRT .LT. 1e-10_dp) then
 !etaRT is very small.
@@ -360,91 +372,6 @@ enddo
 stop
 
 
-
-
-!01 do
-!
-!        etaRT =etaRT * factor
-!        IO(4) = aBEST + etaRT*hA
-!        IO(5) = bBEST + etaRT*hB
-!
-!
-!        call shoot(IO)
-!
-!
-!
-!
-!        if (IO(6) .LT. dsBEST) then
-!        aBEST = IO(4)
-!        bBEST = IO(5)
-!        dsBEST = IO(6)
-!
-!        else
-!                EXIT !Exit do loop
-!        endif
-!
-!
-!
-!
-!
-!
-!enddo
-!
-!
-!
-!
-!
-!if (dsBEST .LT. dsORIG) then
-!!Good. Update
-!
-!
-!!Update search attempts        
-!IO(4) = aBEST
-!IO(5) = bBEST
-!IO(6) = dsBEST
-!
-!
-!!Update globals
-!globals(1) = gA
-!globals(2) = gB
-!globals(3) = hA
-!globals(4) = hB
-!
-!
-!!Update stepsize
-!OT(1) = etaRT/5.0_dp
-!
-!
-!
-!else
-!
-!!Dont update
-!IO(4) = alpha0
-!IO(5) = beta0
-!IO(6) = dsORIG
-!
-!!Set search parameters
-!OT(1) = OT(2) !etaRT = etaLOW
-!OT(3) = OT(3) + 1 !Track the number of fails
-!
-!endif
-!
-!
-!
-!if (OT(3) .GT. 20) then
-!!Repeatedly fails to lower
-!!Change search parameters and reset globals
-!OT(1) = 5.0e-9_dp
-!OT(2) = OT(1)
-!OT(3) = 0.0_dp
-!globals = 0.0_dp
-!endif
-!
-!
-
-!print *, 'OUT:', IO(6), OT(1), OT(3)
-
-
 end subroutine aim
 
 
@@ -475,6 +402,7 @@ if (plot .EQ. 1) then
 !Set up to plot
 allocate(PlotArray(nrows,ncols))
 call create_RT_plotfile(IO(4),IO(5),RTFile)
+print *, 'create RT plotfile:', RTFile
 endif
 
 !Read in array
@@ -574,7 +502,7 @@ if (plot .EQ. 1) then
 
 !MAKE THIS A SUBROUTINE
 
-open(unit =10, file = RTFile,form='formatted')
+open(unit =10, file = RTFile,form='formatted', status='replace')
 do i=1,counter-1
 mm = sqrt(PlotArray(i,1)**2 + a**2)
 xP = mm*sin(PlotArray(i,2))*cos(PlotArray(i,3))
@@ -597,9 +525,10 @@ endif
 enddo
 
 
-
+!If it gets this far it means that it fell below the horizon
+!Return error code
+IO(6) = -1.0_dp
 print *, 'Fell below horizon'
-stop
 
 
 
@@ -728,7 +657,43 @@ end subroutine GeneralInitialConditions
 
 
 
+subroutine setAB(IO,OT, RayClass)
+!Arguments
+real(kind=dp),dimension(:), intent(inout) :: IO
+integer(kind=dp), intent(in) :: RayClass
+real(kind=dp),dimension(3),intent(inout) :: OT
+!Other
+real(kind=dp) :: xT,yT, zT, alpha, beta
 
+
+print *, 'RayClass = ', RayClass
+
+xT = IO(1)
+yT = IO(2)
+zT = IO(3)
+
+if (RayClass .EQ. 1) then
+
+alpha = yT
+beta = xT*cos(ThetaObs) + zT*sin(ThetaObs)
+OT(1) = 1.0_dp
+else if (RayClass .EQ. 2) then
+
+alpha = sign(50.0_dp, yT)
+beta = xT*cos(ThetaObs) + zT*sin(ThetaObs)
+OT(1) = 0.010_dp
+else if (RayClass .EQ. 3) then
+
+alpha = -sign(50.0_dp, yT)
+beta = xT*cos(ThetaObs) + zT*sin(ThetaObs)
+OT(1) = 0.010_dp
+
+endif
+
+IO(4) = alpha
+IO(5) = beta
+
+end subroutine setAB
 
 
 end module RayTracing
