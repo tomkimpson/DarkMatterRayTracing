@@ -5,7 +5,7 @@ use constants
 use metric
 implicit none
 
-public geodesic
+public geodesic, DM_gr
 
 private
 
@@ -78,5 +78,40 @@ dv(6) = sin(theta)*cos(theta)*(Lz**2 * csc**4 -a**2) / sigma + plasma_correction
 
  
 end subroutine geodesic
+
+
+
+
+
+subroutine DM_gr(r,gr)
+!Arguments
+real(kind=dp), intent(in) :: r
+real(kind=dp), intent(out) :: gr
+!Other
+real(kind=dp) :: expo, rr
+
+
+
+rr = r/r0
+
+
+expo = -2.0_dp*kDM*PI*(1.0_dp - rr)/r
+
+
+
+gr = (1.0_dp + rr**2)**expo * &
+     (1.0_dp + rr)**(2.0_dp*expo) * &
+     exp(4*kDM*PI*atan(rr)*(1+rr)/r) - &
+     2.0_dp/r
+
+print *,  (1.0_dp + rr**2)**expo
+print *,(1.0_dp + rr)**(2.0_dp*expo) 
+print *, exp(4*kDM*PI*atan(rr)*(1+rr)/r) 
+print *, 2.0_dp/r
+
+end subroutine DM_gr
+
+
+
 
 end module derivatives

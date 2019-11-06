@@ -16,6 +16,7 @@ real(kind=dp), parameter :: convert_spin= light_c/(Newton_g*(MBH*Msolar)**2.0_dp
 real(kind=dp), parameter :: Rhor = 1.0_dp+sqrt(1.0_dp-a**2) + 1.0d-2 !Horizon + eps
 real(kind=dp), PARAMETER :: electron_charge = 4.80320425D-10 !CGS
 real(kind=dp), PARAMETER :: electron_mass = 9.10938356D-28 !CGS
+real(kind=dp), PARAMETER :: pc = 3.0860e16_dp !meters
 
 !MPD
 real(kind=dp), parameter :: KeplerianPeriodSeconds = KeplerianPeriod*365.0_dp*24.0_dp*3600.0_dp
@@ -42,6 +43,9 @@ integer(kind=dp) :: OrbitNrows, OrbitNcols
 
 !Ray tracing
 
+!Dark matter
+real(kind=dp) :: r0 = 91.2*1e3*pc * convert_m
+real(kind=dp) :: kDM = r0_SI**3 * rho0  !Check units
 
 
 !Numerical integration

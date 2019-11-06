@@ -34,6 +34,11 @@ real(kind=dp), parameter :: Norbit = 3.0_dp !Number of orbits
 real(kind=dp), parameter :: N = 0.0e7_dp !plasma density normalisation
 
 
+!Dark Matter parameters
+real(kind=dp), parameter :: r0_SI = 91.2 !kpc 
+real(kind=dp), parameter :: rho0 = 0.001 !MBH/kpc^3
+
+
 
 !Integration options
 integer(kind=dp)  :: adaptive = 1 !turn on/off (1/0) adaptive stepsize.

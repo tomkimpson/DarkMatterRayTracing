@@ -61,10 +61,10 @@ do i = 1,OrbitNrows
 
 
 
-xvector(1) =  1.00000000000000000000000000000000000         
-xvector(2) = 394.416820652839295349451495054830836         
-xvector(3)=1.57079632679489661923132169163975140         
-xvector(4)=1.88495559215387594307758602996770164      
+!xvector(1) =  1.00000000000000000000000000000000000         
+!xvector(2) = 394.416820652839295349451495054830836         
+!xvector(3)=1.57079632679489661923132169163975140         
+!xvector(4)=1.88495559215387594307758602996770164      
 
 
     print *, 'XVector:', xvector
@@ -123,7 +123,6 @@ IO(2) = yT
 IO(3) = zT
 
 RayClass = 1 !Minkowski Initialisation
-RayClass = 3
 !TO DO()
 !Secondary rays
 !Speed optimization
@@ -157,7 +156,7 @@ endif
 OT(1) = 0.010_dp ! Initial stepsize alpha for backtracing
 globals = 0.0_dp
 
-do while (IO(6) .GT. 1.0d-6)
+do while (IO(6) .GT. 1.0d-3)
 call aim(IO,globals,OT)
 enddo
 
@@ -292,11 +291,11 @@ dstemp = IO(6)
         IO(5) = beta0 + etaRT*hB
  
         !Check sign of alpha doesnt change
-        if ( sign(1.0_dp,IO(4)/alpha0) .NE. 1.0_dp) then
-        globals = 0
-        etaRT = etaRT*0.10_dp
-        goto 02
-        endif
+        !if ( sign(1.0_dp,IO(4)/alpha0) .NE. 1.0_dp) then
+        !globals = 0
+        !etaRT = etaRT*0.10_dp
+        !goto 02
+        !endif
 
 
 
@@ -563,6 +562,8 @@ real(kind=dp) :: r,theta,rdot,thetadot,phidot, sigma,delta
 real(kind=dp) :: E2, E, Enorm, Eprime2, Eprime,Eobs
 real(kind=dp) :: B2, fr,ft,omega2
 real(kind=dp) :: Lz, pr, ptheta, phi,kappa, En, s1
+real(kind=dp) :: Gr
+
 
 !Load the data
 r = ray(2)
@@ -577,6 +578,25 @@ sigma = r**2 +a**2*cos(theta)**2
 delta = r**2 -2.0_dp*r + a**2
 
 
+call DM_gr(r,Gr)
+
+print *, kDM, Gr
+stop
+Gr = 1.0
+
+delta = r**2 * Gr + a**2
+
+
+
+
+
+
+
+
+
+
+
+
 
 !Define the plasma frequency
 B2 =  N*4.0_dp*PI*electron_charge**2 / electron_mass
@@ -584,21 +604,7 @@ call plasma_fr(r,fr)
 call plasma_ft(r,ft)
 omega2 = B2 * (fr+ft)/sigma
 
-!Construct the energy is the conserved energy?
-!Eobs = 16.0_dp
-!Enorm = (sigma-2.0_dp*r)*(rdot**2/delta + thetadot**2) + delta*(sin(theta)*phidot)**2
-!Eprime2 = (Eobs**2)/Enorm
-!Eprime = sqrt(Eprime2)
 
-!Correct to ensure correct Energies
-!rdot = rdot * Eprime
-!thetadot = thetadot*Eprime
-!phidot = phidot*Eprime
-
-
-!If you want you can check that E = Eobs
-!E2 = (sigma-2.0_dp*r)*(rdot**2/delta + thetadot**2) + delta*(sin(theta)*phidot)**2
-!E = sqrt(E2)
 
 
 ! Compute the energy
