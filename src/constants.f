@@ -35,6 +35,12 @@ real(kind=dp), parameter :: hs_natural = hs * convert_s
 real(kind=dp), parameter :: SpinPeriod = p0 * convert_s
 
 
+
+
+
+real(kind=dp), parameter :: RObs = 1e4_dp !RO*1e3*pc * convert_m
+
+
 !MPD I/O
 integer(kind=dp), parameter :: nrows = 1d4
 character(len=200) :: path, MPDBinaryData, MPDFormatData, RTPath
@@ -44,9 +50,9 @@ integer(kind=dp) :: OrbitNrows, OrbitNcols
 !Ray tracing
 
 !Dark matter
-real(kind=dp) :: r0 = 91.2*1e3*pc * convert_m
+real(kind=dp) :: r0 = r0_SI*1e3*pc * convert_m
 real(kind=dp) :: kDM = r0_SI**3 * rho0  !Check units
-
+integer(kind=dp) :: DM !turn DM halo on /off
 
 !Numerical integration
 !Cash-Karp parameters and integration constants

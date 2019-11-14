@@ -35,8 +35,8 @@ real(kind=dp), parameter :: N = 0.0e7_dp !plasma density normalisation
 
 
 !Dark Matter parameters
-real(kind=dp), parameter :: r0_SI = 91.2 !kpc 
-real(kind=dp), parameter :: rho0 = 0.001 !MBH/kpc^3
+real(kind=dp), parameter :: r0_SI = 10.0_dp !kpc 
+real(kind=dp), parameter :: rho0 = 4e7/MBH !MBH/kpc^3
 
 
 
@@ -47,7 +47,7 @@ real(kind=dp), parameter :: hs = 1.0d-5 !Fixed timing resolution in seconds. onl
 real(kind=dp), parameter :: RepRes = 1000.0_dp !The representative resolution. What fraction of the orbit do you want for target &
 !points? 1 = all of the orbit.
 integer(kind=dp), parameter :: RayTracingDirection = -1 !+1 = Forward, -1 = Backward
-real(kind=dp), parameter :: RObs = 1000.0_dp,ThetaObs = PI/2.0_dp, PhiObs = 0.0_dp
+real(kind=dp), parameter :: RO = 8.330_dp,ThetaObs = PI/2.0_dp, PhiObs = 0.0_dp
 
 !I/O options
 integer(kind=dp), parameter :: plot_MPD = 1 !turn on/off (1/0) numerical accuracy evaluation

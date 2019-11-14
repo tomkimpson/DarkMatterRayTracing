@@ -20,6 +20,7 @@ subroutine RT()
 integer(kind=dp) :: stat,i
 
 real(kind=dp), dimension(:,:), allocatable :: MPDData
+real(kind=dp), dimension(:,:), allocatable :: TimingResiduals
 real(kind=dp) :: t,r,theta,phi,tau
 real(kind=dp), dimension(4) :: xvector, uvector, svector
 real(kind=dp) :: p1,p2,p3,p4
@@ -33,11 +34,12 @@ real(kind=dp),dimension(4,4) :: metric_covar
 real(kind=dp) :: gtt, gpp, gtp, aa,bb,cc, Eobs
 character(len=200) :: FileName,IDStr
 integer(kind=dp) :: FileID
-
-
+real(kind=dp),dimension(2) :: AB!some guesses for AB
+real(kind=dp) :: t1,t2,dt
 
 
 allocate(MPDData(OrbitNrows,OrbitNcols))
+allocate(TimingResiduals(OrbitNrows,2))
 
 !Load the MPD Data file
 open(unit=10, file=MPDBinaryData , form='unformatted',action='read')
@@ -49,26 +51,11 @@ close(10)
 
 !For each row in array
 do i = 1,OrbitNrows
+!do i = 2,OrbitNrows
 
     !Get the data as a position vector t, r, theta, phi
     xvector(1:4) = MPDData(i,1:4)
  
-!xvector(1) = 5.00000000000000000000000000000000000         
-!xvector(2) = 1484.55810146794412658580140724669970         
-!xvector(3) = 1.57079632679489661923132169163975140        
-!xvector(4) = 9.42477796076937971538793014983850839
-
-
-
-
-!xvector(1) =  1.00000000000000000000000000000000000         
-!xvector(2) = 394.416820652839295349451495054830836         
-!xvector(3)=1.57079632679489661923132169163975140         
-!xvector(4)=1.88495559215387594307758602996770164      
-
-
-    print *, 'XVector:', xvector
-
     !Do either forward or backward Ray Tracing
 
     if (RayTracingDirection .EQ. +1.0_dp) then
@@ -76,7 +63,22 @@ do i = 1,OrbitNrows
         call RT_Forward()
     else if (RayTracingDirection .EQ. -1.0_dp) then
         !Backward
-        call RT_Backward(xvector)
+        DM = 1
+        AB = 0.0_dp
+        print *, 'Dark Matter on'
+        print *, 'OBS:', RObs
+        call RT_Backward(xvector,AB,t1)
+        DM = 1
+        print *, 'Dark Matter on'
+        call RT_Backward(xvector,AB,t2)
+
+        dt = t1-t2
+        TimingResiduals(i,1) = dt / convert_s
+        TimingResiduals(i,2) = xvector(4) !phi
+
+        print *, 'dt = ', TimingResiduals(i,1)
+        stop
+
     else
         !Exit
         print *, 'Error: You need to set the ray tracing method'
@@ -86,6 +88,21 @@ do i = 1,OrbitNrows
 
 
 enddo
+
+
+
+print *, 'All DONE'
+print *, 'save to file'
+
+
+open(unit =20, file = 'TR.txt',form='formatted', status='replace')
+do i=1,OrbitNrows
+write(20,*) TimingResiduals(i,2), TimingResiduals(i,1)
+enddo
+close(20)
+
+
+
 
 
 
@@ -100,9 +117,11 @@ subroutine RT_Forward()
         print *, 'Forward Ray Tracing. Doing Nothing'
 end subroutine RT_Forward
 
-subroutine RT_Backward(xi)
+subroutine RT_Backward(xi,AB,tout)
 !Arguments
 real(kind=dp), dimension(4), intent(in) :: xi !position of MPD
+real(kind=dp), dimension(2), intent(inout) :: AB !guess at initial AB if available
+real(kind=dp), intent(out) :: tout
 !Other
 real(kind=dp) :: xT, yT, zT, mm
 real(kind=dp) :: alpha,beta
@@ -122,26 +141,28 @@ IO(1) = xT
 IO(2) = yT
 IO(3) = zT
 
+
+!Set alpha/beta
 RayClass = 1 !Minkowski Initialisation
-!TO DO()
-!Secondary rays
-!Speed optimization
-!Robustness for edge cases e.g. hits BH
-
-!Initial guess at the coordinates of the image plane
-!alpha = -10.0_dp*yT !Falls below horizon for alpha=-yT (=-5.0_dp)
-
-!Intiailly ray class = minkowski
-
-
 11 call setAB(IO,OT,RayClass)
 
-print *, 'IC:', RayClass, IO(4), IO(5)
-!Fire a ray. How it does i.e. ds is written to IO(6)
-plot = 0
+!Modify alpha beta if we have a previous best guess
+if (AB(1) .NE. 0.0_dp) then
+IO(4) = AB(1)
+IO(5) = AB(2)
+endif
 
+
+
+
+!Fire a ray. How it does i.e. ds is written to IO(6)
+plot = 0 !Dont plot it
 call shoot(IO,plot)
 print *, 'Initial ds =', IO(6)
+
+
+
+
 
 if (IO(6) .EQ. -1.0_dp) then
 !Fell into BH. Poor choice of initial ray. Search for more bent rays instead
@@ -150,15 +171,19 @@ goto 11
 endif
 
 
-
-
 !Now run some conjugate gradient descent (non-linear) using the AIM subroutine
-OT(1) = 0.010_dp ! Initial stepsize alpha for backtracing
 globals = 0.0_dp
 
-do while (IO(6) .GT. 1.0d-3)
+
+
+
+!print *, (sqrt(1.0d-19) / convert_m ) / 3e8
+
+
+do while (IO(6) .GT. 1.0d-19)
 call aim(IO,globals,OT)
 enddo
+
 
 
 !Trace the ray - useful for data+plotting. Or just write to file for use later
@@ -168,17 +193,27 @@ print *, 'The mininum has been sucessfully found. Now tracing the ray'
 plot=1
 call shoot(IO,plot)
 
+tout = IO(1)
+
+
+
+
+print *, 'TOUT:', tout
+
+
+!Write alpha beta for next time
+AB(1) = IO(4)
+AB(2) = IO(5)
 
 
 
 
 
-
-
-if (xT .LT. 0.0_dp .and. RayClass .NE. 3) then
-RayClass = 3 
-goto 11
-endif
+!Try all potential AB?
+!if (xT .LT. 0.0_dp .and. RayClass .NE. 3) then
+!RayClass = 3 
+!goto 11
+!endif
 
 
 
@@ -392,7 +427,7 @@ real(kind=dp), dimension(4) :: c !The constants L. kappa etc
 real(kind=dp), dimension(2) :: b !the BackArray - contains stuff which relates to intersections and backwards ray tracing
 integer(kind=dp) :: counter,i
 real(kind=dp) :: Rstart, xOUT,dx, ds2
-integer(kind=dp), parameter :: nrows = 1e8,ncols = 3
+integer(kind=dp), parameter :: nrows = 1e8,ncols = 4
 real(kind=dp), dimension(:,:), allocatable :: PlotArray
 character(len=300) :: RTFile
 
@@ -475,7 +510,7 @@ call rk_geodesic(v,c,b)
 !print *, plot, v(1)
 if (plot .EQ. 1) then
 !Save to array for plotting
-PlotArray(counter,1:3) = v(1:3) 
+PlotArray(counter,1:4) = v(1:4) 
 endif
 counter = counter + 1
 
@@ -507,11 +542,17 @@ mm = sqrt(PlotArray(i,1)**2 + a**2)
 xP = mm*sin(PlotArray(i,2))*cos(PlotArray(i,3))
 yP = mm*sin(PlotArray(i,2))*sin(PlotArray(i,3))
 zP = PlotArray(i,1)*cos(PlotArray(i,2))
-write(10,*) xP , yP, zP
+write(10,*) xP , yP, zP !x,y,z
 enddo
 close(10)
 print *, 'saved'
+
+!Extract the final time coordinate
+!Re write into IO(1) since we will not use this again
+IO(1) = PlotArray(counter-1,4) !final time
 deallocate(PlotArray)
+
+
 endif
 
 
@@ -562,7 +603,7 @@ real(kind=dp) :: r,theta,rdot,thetadot,phidot, sigma,delta
 real(kind=dp) :: E2, E, Enorm, Eprime2, Eprime,Eobs
 real(kind=dp) :: B2, fr,ft,omega2
 real(kind=dp) :: Lz, pr, ptheta, phi,kappa, En, s1
-real(kind=dp) :: Gr
+real(kind=dp) :: Gr, upsilon
 
 
 !Load the data
@@ -575,50 +616,32 @@ phidot = ray(7)
 
 !Setup some defenitions
 sigma = r**2 +a**2*cos(theta)**2
-delta = r**2 -2.0_dp*r + a**2
 
 
+
+if (DM .EQ. 1) then
 call DM_gr(r,Gr)
-
-print *, kDM, Gr
-stop
-Gr = 1.0
-
 delta = r**2 * Gr + a**2
+upsilon = r*(1.0_dp - Gr)/2.0_dp
+else
+delta = r**2 -2.0_dp*r + a**2
+upsilon = 1.0_dp
+endif
 
 
 
-
-
-
-
-
-
-
-
-
-
-!Define the plasma frequency
-B2 =  N*4.0_dp*PI*electron_charge**2 / electron_mass
-call plasma_fr(r,fr)
-call plasma_ft(r,ft)
-omega2 = B2 * (fr+ft)/sigma
 
 
 
 
 ! Compute the energy
-s1 = sigma-2.0*r
-E2 = s1*(rdot**2.0/delta +thetadot**2.0 +omega2/sigma) + delta*sin(theta)**2.0*phidot**2.0
+s1 = sigma-2.0*r*upsilon
+E2 = s1*(rdot**2.0/delta +thetadot**2.0) + delta*sin(theta)**2.0*phidot**2.0
 En  = sqrt(E2)
 
 
-
-
-
-
 !Get the angular momentum
-Lz = (sigma*delta*phidot - 2.0_dp*a*r*En)*sin(theta)**2 / (s1)
+Lz = (sigma*delta*phidot - 2.0_dp*a*r*En*upsilon)*sin(theta)**2 / (s1)
 
 
 !Get the momenta (non constant)
@@ -650,12 +673,6 @@ c(1) = Lz
 c(2) = kappa
 c(3) = B2
 c(4) = 1.0d-3 !Initial stepsize for RT
-
-
-!print *, 'Iliad IC:'
-!print *, v(1:3)
-!print *, v(4:6)
-!print *, c, En
 
 
 
